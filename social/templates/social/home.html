@@ -1,0 +1,24 @@
+<html>
+  <head>
+    <title> Social </title>
+  </head>
+  <body>
+    <div id='new-post'>
+      <h1> Write a new post <h1>
+      <form action="{% url 'social:add_post' %}" method="post" id='new-post-form'>
+      {% csrf_token %}
+        <textarea name='text' form='new-post-form' placeholder="Write your post here..."></textarea> 
+        <input type='submit'/>
+      </form>
+    </div>
+
+
+    {% for post in posts %}
+    <div class='post' id="{{post.id}}">
+      <p>{{post.text}}<p>
+      <p>{{post.date_time}}</p>
+    </div>
+    {% endfor %}
+  </body>
+</html>
+

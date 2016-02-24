@@ -2,6 +2,8 @@ from django.shortcuts import render
 from django.contrib.auth import authenticate
 from django.http import HttpResponseRedirect, HttpResponseBadRequest
 from django.core.urlresolvers import reverse
+from django.contrib.auth.decorators import login_required
+from social.models import Post
 
 # Create your views here.
 
@@ -17,7 +19,11 @@ def login(request):
    else:
        return HttpResponseBadRequest("The combination of username and password does not exist.")
 
+@login_required
 def home(request):
-    pass
+    posts = Post.objects.all()
+    return render(request, 'social/home.html', {'posts': posts})
 
+def add_post(request):
+    pass
            
