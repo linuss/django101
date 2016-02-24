@@ -1,0 +1,20 @@
+<html>
+  <head>
+    <title> Welcome to Social! </title>
+  </head>
+  <body>
+    <h1> Welcome to Social, the least useful social network! </h1>
+    <h2> Please sign in to continue </h2>
+
+    <form action="{% url 'social:login' %}" method="post">
+      {% csrf_token %}
+      <input type="text" name="username" id="username-input">
+      <label for="username-input">Username</label> <br />
+      <input type="password" name="password" id="password-input">
+      <label for="password-input">Password</label> <br />
+    <input type="submit"/>
+    </form>
+  </body>
+</html>
+
+
