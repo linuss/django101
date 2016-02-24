@@ -4,6 +4,10 @@ Welcome to the Django 101: Build a web-app in a day tutorial! This git repositor
 
 To get started, please follow the instructions in this document. If you ever get stuck, you can check out the code in this repository, but try not to simply copy everything: you'll learn much more by writing it yourself. Each step will be explained here to guide you through the process.
 
+# Prerequisites
+
+In order to complete this tutorial, you'll need to have some stuff installed on your system. We'd like to refer you to the excellent [Installation chapter of Django for Girls] (http://tutorial.djangogirls.org/en/installation/index.html) (please don't feel offended if you're not a girl, we're pretty sure these instructions are unisex :))
+
 # Step 1
 ## Initializing the project
 
@@ -185,18 +189,18 @@ from social import views
 
 urlpatterns = [
     url(r'$^',     views.index, name='index'),
-    url(r'login/', views.login, name='login'),
+    url(r'login/', views.social_login, name='login'),
 ]   
 ```
 
-This file is very similar to the one in `django101/django101`. However, instead of redirecting the regular expressions to other url-files, we link them to our views! What happens here is that any request without anything behind it will be processed by the index view (or method) in `social/views.py`. Any request that ends in `/login/` will be handled by a login view we have yet to write.
+This file is very similar to the one in `django101/django101`. However, instead of redirecting the regular expressions to other url-files, we link them to our views! What happens here is that any request without anything behind it will be processed by the index view (or method) in `social/views.py`. Any request that ends in `/login/` will be handled by a social_login view we have yet to write.
 
 If you go back to our index.html template, we can see the `{% url social:login %}` tag. The part before the colon (:) specifies the namespace. We set the namespace in the `django101/django101/urls.py` file if you recall. The part after the colon specifies the name, which we just set in the `django101/social/urls.py` file. If we now wanted to change which view handles this login, all we'd have to do is change `views.login` to whatever new view we wrote. 
 
 If you specifiy a view however, it must exist, and we don't have a login view yet! So, open up `social/views.py` again, and add the following 
 
 ```python
-def login(request):
+def social_login(request):
     pass
 ```
 
@@ -205,10 +209,10 @@ We'll implement this view in the next step.
 Now, to see if everything works, go to the top directory and type `python3 manage.py runserver`. This starts the Django development server, so you can test your website! Open a browser and enter `localhost:8000` in the URL bar. You should be greated by our new site!
 
 # Step 3
-## Logging I
+## Logging In
 
 In the previous step, we created a shim login view. Let's flesh it out! 
-In the login view, we'd like to authenticate the user. In our index.html template, we created a form that, when submitted, sends its data as POST-parameters to our login view. This is where the request object comes in. To access POST-parameters, in your view type `request.POST[<parameter_name>]`. The names of the parameters correspond to the name attributes on the inputs in your HTML form, so in our case 'username' and 'password'.
+In the social_login view, we'd like to authenticate the user. In our index.html template, we created a form that, when submitted, sends its data as POST-parameters to our login view. This is where the request object comes in. To access POST-parameters, in your view type `request.POST[<parameter_name>]`. The names of the parameters correspond to the name attributes on the inputs in your HTML form, so in our case 'username' and 'password'.
 
 Open the `social/views.py` file and add the following:
 
@@ -216,6 +220,7 @@ Open the `social/views.py` file and add the following:
 def login(request):
    user = authenticate(username=request.POST['username'], password=request.POST['password']) 
    if user is not None:
+       login(request, user)
        return HttpResponseRedirect(reverse('social:home'))
    else:
        return HttpResponseBadRequest("The combination of username and password does not exist.")
@@ -224,12 +229,13 @@ def login(request):
 At the top of your file, make sure we have the necessary imports:
 
 ```python
-from django.contrib.auth import authenticate
+from django.contrib.auth import authenticate, login
 from django.http import HttpResponseRedirect, HttpResponseBadRequest
 from django.core.urlresolvers import reverse
 ```
 
-This view gets the submitted username and password from the POST parameters as submitted by the form. It then uses the Django built-in method 'authenticate' to check whether this user exists. If so, the user is returned (and so is not None). We then return an `HttpResponseRedirect`, which redirects the user to the specified URL. `reverse` takes a url namespace and name (much like in our template), and converts it to an actual URL. This means that if a user succesfully logs in, (s)he will be redirected to the home page.
+This view gets the submitted username and password from the POST parameters as submitted by the form. It then uses the Django built-in method 'authenticate' to check whether this user exists. If so, the user is returned (and so is not None). By then calling the login function, we make sure that the user is registered as being logged in. This means a cookie is returned to the user which will be used from now on to authenticate the user. 
+We then return an `HttpResponseRedirect`, which redirects the user to the specified URL. `reverse` takes a url namespace and name (much like in our template), and converts it to an actual URL. This means that if a user succesfully logs in, (s)he will be redirected to the home page.
 
 If however, the user cannot be authenticated, we return an `HttpResponseBadRequest` with a message. This message is shown whenever someone tries to log in but makes a mistake or does not exist.
 
