@@ -4,10 +4,10 @@
   </head>
   <body>
     <div id='new-post'>
-      <h1> Write a new post <h1>
+      <h1> Write a new post </h1>
       <form action="{% url 'social:add_post' %}" method="post" id='new-post-form'>
       {% csrf_token %}
-        <textarea name='text' form='new-post-form' placeholder="Write your post here..."></textarea> 
+        <textarea name='text' form='new-post-form' required placeholder="Write your post here..."></textarea> 
         <input type='submit'/>
       </form>
     </div>
@@ -15,8 +15,21 @@
 
     {% for post in posts %}
     <div class='post' id="{{post.id}}">
-      <p>{{post.text}}<p>
+      <p>{{post.text}}</p>
       <p>{{post.date_time}}</p>
+      <div class='comments'>
+        <ul>
+          {% for comment in post.comment_set.all %}
+          <li> {{comment.text}} - {{comment.poster.username}} ({{comment.date_time}}) </li>
+          {% endfor %}
+        </ul>
+      </div>
+      <form action="{% url 'social:add_comment' %}" method="post">
+      {% csrf_token %}
+        <input type='text' name='comment' required placeholder="Write your comment here..."/>
+        <input type='hidden' name='post_id' value={{post.id}} />
+        <input type='submit'/>
+      </form>
     </div>
     {% endfor %}
   </body>

@@ -205,7 +205,7 @@ We'll implement this view in the next step.
 Now, to see if everything works, go to the top directory and type `python3 manage.py runserver`. This starts the Django development server, so you can test your website! Open a browser and enter `localhost:8000` in the URL bar. You should be greated by our new site!
 
 # Step 3
-## Logging I
+## Logging In
 
 In the previous step, we created a shim login view. Let's flesh it out! 
 In the login view, we'd like to authenticate the user. In our index.html template, we created a form that, when submitted, sends its data as POST-parameters to our login view. This is where the request object comes in. To access POST-parameters, in your view type `request.POST[<parameter_name>]`. The names of the parameters correspond to the name attributes on the inputs in your HTML form, so in our case 'username' and 'password'.
