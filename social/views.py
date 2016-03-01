@@ -42,7 +42,7 @@ def social_login(request):
 
 @login_required
 def home(request):
-    posts = Post.objects.all()
+    posts = Post.objects.all().order_by('-date_time')
     return render(request, 'social/home.html', {'posts': posts})
 
 
@@ -53,6 +53,8 @@ def add_post(request):
         new_post = Post()
         new_post.text = request.POST['text']
         new_post.poster = request.user
+        if 'photo' in request.FILES and request.FILES['photo'] is not None:
+            new_post.photo = request.FILES['photo']
         new_post.save()
         return HttpResponseRedirect(reverse('social:home'))
     else:
@@ -76,4 +78,3 @@ def add_comment(request):
     else:
         return HttpResponseBadRequest(check[1])
 
-           

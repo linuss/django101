@@ -613,6 +613,123 @@ We'll do something very similar in `home.html`. Edit your file to look like this
 
 To check the results of your new stylings, make sure `python3 manage.py runserver` is (still) running, and open `localhost:8000` in your browser. That looks a lot better, right?!
 
+# Step 7
+## More database tricks
+
+If you've played around with your new application you might have noticed something weird: the posts and comments are displayed in the wrong order! What we'd like ideally is if they were sorted on the time submitted, with the latest posts and comments ending up at the top. This is achieved fairly easily by using Django's awesome ORM. 
+
+Open the `views.py` file, and change the line
+```python
+posts = Post.objects.all()
+```
+into
+```python
+posts = Post.objects.all().order_by('-date_time')
+```
+
+the `order_by()` function allows you to specify in which order you would like to retrieve your results from the database. It can take one or more arguments, which must be the names of the fields you'd like to order on (if you give it multiple field, it will order on the first field first, and then on the second). By prefixing the name of the field with a minus ('-') character, we indicate that we would like descending order, instead of the default ascending order. 
+As an example, you could try ordering your post by username like this `Post.objects.order_by('poster__username')`. 
+
+We probably want the same thing for our comments. Because we are using the Django Template language to access our comments, this is slightly more difficult. The easiest way to solve this is to give the `Comment` class a default ordering. This makes sense, as we'll probably want to order our comments by time posted throughout our entire app anyways. 
+
+To accomplish this, open the `models.py` file and add the following:
+
+
+```python
+class Comment(models.Model):
+    ...
+    class Meta:
+        ordering = ['-date_time']
+```
+
+This makes sure that whenever you're requesting comments from the database, the latest comment is returned first.
+
+## Uploading photos
+If you recall, when we created our models we added a `photo` field to the `Post` class. It's time we use it!
+
+To get uploading photos to work, we'll need to lay a little bit of a foundation. First, open `django101/settings.py` and add the following lines:
+
+```python
+
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+
+MEDIA_URL = '/media/'
+```
+
+This tells Django where to store any uploaded images, and where to find them if they're to be displayed on a page.
+
+Then, open `django101/urls.py` and add the following imports:
+```python
+from django.conf import settings
+from django.conf.urls.static import static
+```
+and edit `urlpatterns` so it looks like this:
+```python
+urlpatterns = [
+    url(r'^admin/', admin.site.urls),
+    url(r'^',       include('social.urls', namespace='social')),
+] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+```
+
+After doing this, we'll need to add the file upload dialog to the post-creator form. Open `home.html` and edit the post form to look like this:
+```html
+<!-- New post container -->
+<div class='row'>
+  <div class='col-xs-8 col-xs-offset-2'>
+    <div class='panel panel-primary' id='new-post'>
+      <div class='panel-body'>
+        <h1> Write a new post </h1>
+        <form action="{% url 'social:add_post' %}" method="post" id='new-post-form' enctype='multipart/form-data'>
+        {% csrf_token %}
+          <div class='form-group'>
+            <textarea class='form-control'name='text' form='new-post-form' required placeholder="Write your post here..."></textarea> 
+          </div>
+          <div class='form-group'>
+            <input id='photo-upload' class='form-control' 
+                   type='file' name='photo' accept='image/*'>
+            </input>
+            <label for='photo-upload'>Upload a photo</label>
+          </div>
+          <button type='submit' class='btn btn-default'>Post</button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+```
+Pay attention to the extra attribute `enctype` added to the opening `<form>` tag. This is necessary if you want to send more than plain text. 
+
+Now, we don't just want to upload photos, we'd like to show them too! Add the following bit:
+```html
+...
+<div class='panel-body'>
+  <p class='lead'>{{post.text}}</p>
+</div>
+{% if post.photo %}
+<div class='col-xs-10 col-xs-offset-1'>
+  <img class='img-responsive center-block img-rounded' src={{post.photo.url}}/>
+</div>
+...
+```
+
+Bear in mind that if you chose to do your own styling in the previous step, you can leave out the HTML classes and substitute your own.
+
+Finally, we'll need to make sure that any photo that gets sent is stored! Open up `views.py` and add the following lines:
+```python
+...
+new_post.poster = request.user
+if 'photo' in request.FILES and request.FILES['photo'] is not None:
+    new_post.photo = request.FILES['photo']
+new_post.save()
+...
+```python
+
+That's it! You can now upload and view photos! 
+
+
+
+
+
 
 
 

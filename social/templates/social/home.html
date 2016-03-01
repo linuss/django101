@@ -15,10 +15,16 @@
           <div class='panel panel-primary' id='new-post'>
             <div class='panel-body'>
               <h1> Write a new post </h1>
-              <form action="{% url 'social:add_post' %}" method="post" id='new-post-form'>
+              <form action="{% url 'social:add_post' %}" method="post" id='new-post-form' enctype='multipart/form-data'>
               {% csrf_token %}
                 <div class='form-group'>
                   <textarea class='form-control'name='text' form='new-post-form' required placeholder="Write your post here..."></textarea> 
+                </div>
+                <div class='form-group'>
+                  <input id='photo-upload' class='form-control' 
+                         type='file' name='photo' accept='image/*'>
+                  </input>
+                  <label for='photo-upload'>Upload a photo</label>
                 </div>
                 <button type='submit' class='btn btn-default'>Post</button>
               </form>
@@ -39,13 +45,18 @@
             <div class='panel-body'>
               <p class='lead'>{{post.text}}</p>
             </div>
+            {% if post.photo %}
+            <div class='col-xs-10 col-xs-offset-1'>
+              <img class='img-responsive center-block img-rounded' src={{post.photo.url}}/>
+            </div>
+            {% endif %}
             <div class='row'>
               <div class='col-xs-10 col-xs-offset-1'>
                 <ul class='list-group'>
                   {% for comment in post.comment_set.all %}
-                  <li class='list-group-item'> 
-                    {{comment.text}} - {{comment.poster.username}} ({{comment.date_time}}) 
-                  </li>
+                    <li class='list-group-item'> 
+                      {{comment.text}} - {{comment.poster.username}} ({{comment.date_time}}) 
+                    </li>
                   {% endfor %}
                 </ul>
                 <form action="{% url 'social:add_comment' %}" method="post">
