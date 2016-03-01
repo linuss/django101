@@ -13,16 +13,16 @@ familiar with git you are of course free to use it, but it won't be necessary.
 ## Initializing the project
 
 Django contains a lot of tools and commands that help you quickly create web-apps. To start our project off, in your terminal please type
-```
-django-admin startproject django101
+```bash
+$ django-admin startproject django101
 ```
 
 This should create a django101 directory, which contains the basic necessities of a Django project.
 
 Enter the directory and create your app by typing
-```
-cd django101
-django-admin startapp social
+```bash
+$ cd django101
+$ django-admin startapp social
 ```
 
 We must also make Django aware of our new app. To do so, add `social` to the `INSTALLED_APPS` list in django101/settings.py.
@@ -40,16 +40,16 @@ Do so by opening this file in your favorite editor and adding it. The final resu
 ```
 
 Then, create the initial database by typing
-```
-python3 manage.py migrate
+```bash
+$ python3 manage.py migrate
 ```
 
 This creates a set of default database tables that we're going to need later.
 
 Finally, set up a superuser. This is necessary to be able to access the admin interface and create database entries for testing
 
-```
-python3 manage.py createsuperuser
+```bash
+$ python3 manage.py createsuperuser
 ```
 
 You are now ready to start creating your app!
@@ -90,9 +90,9 @@ You'll notice some properties have extra arguments. The ForeignKey argument dete
 
 
 To create the database tables, exit your editor and in the terminal go to the topmost django101 directory. There, type
-```
-python3 manage.py makemigrations social
-python3 manage.py migrate
+```bash
+$ python3 manage.py makemigrations social
+$ python3 manage.py migrate
 ```
 
 That's it! You now have the required database tables to build our web-app.
@@ -127,8 +127,8 @@ As mentioned earlier, a Django view will need to return something to display in 
 A Django template file is in many ways very similar to a regular HTML page. The difference is that you can add special Django-specific tags and keywords to help you. This is often useful to embed data retrieved from the database on the page you're returning. 
 
 Now, to create our first template. In the social directory, issue the following commands:
-```
-mkdir -p templates/social
+```bash
+$ mkdir -p templates/social
 ```
 
 The following directory structure should now exist: `django101/social/templates/social`. The double use of social seems unnecessary, but that's just how Django works (and there's probably a very good reason for it :)). By placing our templates in this directory, Django will automatically know where to find them (remember the render function call in the index view: all we gave as the template argument was `'social/index.html'`)
@@ -207,7 +207,13 @@ def social_login(request):
 
 We'll implement this view in the next step. 
 
-Now, to see if everything works, go to the top directory and type `python3 manage.py runserver`. This starts the Django development server, so you can test your website! Open a browser and enter `localhost:8000` in the URL bar. You should be greated by our new site!
+Now, to see if everything works, go to the top directory and type
+```bash
+$ python3 manage.py runserver
+```
+
+
+This starts the Django development server, so you can test your website! Open a browser and enter `localhost:8000` in the URL bar. You should be greated by our new site!
 
 # Step 3
 ## Logging In
@@ -253,7 +259,7 @@ url(r'home/', views.home, name='home'),
 ```
 to the `urlpatterns` list
 
-That's it! We're now able to login to our webapp! There's nothing really to show yet, but we'll get to that next. Remember to try if everything works by going to the top directory and typing `python3 manage.py runserver`, and then browsing to `localhost:8000`. You can try logging in with the username and password you created in step 1, and try logging in with a user that doesn't exist.
+That's it! We're now able to login to our webapp! There's nothing really to show yet, but we'll get to that next. Remember to try if everything works by going to the top directory and typing `$ python3 manage.py runserver`, and then browsing to `localhost:8000`. You can try logging in with the username and password you created in step 1, and try logging in with a user that doesn't exist.
 
 # Step 4
 ## Add home view and template
@@ -613,7 +619,7 @@ We'll do something very similar in `home.html`. Edit your file to look like this
 </html>
 ```
 
-To check the results of your new stylings, make sure `python3 manage.py runserver` is (still) running, and open `localhost:8000` in your browser. That looks a lot better, right?!
+To check the results of your new stylings, make sure `$ python3 manage.py runserver` is (still) running, and open `localhost:8000` in your browser. That looks a lot better, right?!
 
 # Step 7
 ## More database tricks
