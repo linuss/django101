@@ -436,7 +436,7 @@ In home.html, add the following lines:
 	<div class='comments'>
 		<ul>
 			{% for comment in post.comment_set.all %}
-			<li> {{comment.text}} - {{comment.poster.username}} ({{comment.date_time}}) </li>
+			<li> {{comment.text}} - {{comment.poster.username}} ({{comment.date_time | timesince}}) </li>
 			{% endfor %}
 		</ul>
 	</div>
@@ -449,6 +449,8 @@ In home.html, add the following lines:
 </div>
 {% endfor %}
 ```
+
+One thing that's new here is in the `{{comment.date_time | timesince}}` blob. The thing behind the pipe ('|') is called a filter. `timesince` is a Django built-in filter that converts a date and time to the amount of time that has passed since this date and time. 
 
 As you might have guessed, we'll now need to add the `add_comment` view. Open `social/views.py` and add:
 
@@ -799,6 +801,76 @@ cutoff = datetime.datetime(year=2016)
 comments = Comment.objects.filter(date_time__gt=cutoff)
 ```
 Et voila! (Note: the `__gt` bit means Greater Than). 
+
+## Deleting post
+Now that you've been playing around with your app for a while, you'll probably notice the home page flooding with nonsense test posts. Wouldn't it be great if we could remove some of them? 
+However, we have to make sure that we're the only ones that can remove our posts: it would be weird if you could delete everything your friends have written!
+
+To accomplish this, let's first create a delete button in the template.
+Open `home.html` and add the following lines:
+
+```html
+<div class='panel-heading'>
+  <h4>{{post.poster.username}}</h4>
+  <h4 class='small'>
+    posted on {{post.date_time}}
+    {% if post.poster == user %}
+    <form action="{% url 'social:delete_post' post.id %}" method="post" id='delete-post'>
+      {% csrf_token %}
+      <button type='submit'title='delete post' class='glyphicon glyphicon-trash pull-right'></button>
+    </form>
+    {% endif %}
+  </h4>
+</div>
+```
+
+Note that the delete icon is part of Bootstrap. If you've chosen your own formatting, you could save your own icon in the `social/static` directory and refer to it like `<img src="{% static 'social/images/<img_name>' %}"/>`. 
+What's new here is the use of the `{% if %}` tag. The if-tag makes sure everything in it is only shown if the condition in the tag is true, or the object mentioned actually exists. In this case, we're only showing the delete button on posts that are actually yours! We do need to supply the template with an extra argument though, `user`. Let's do that first. In `views.py` add:
+
+```python
+return render(request, 'social/home.html', {'posts': posts, 'user': request.user})
+```
+
+Okay, now that that's taken care off, we'll need to write a new view that delete's a post. In `views.py` add the following:
+```python
+@login_required
+def delete_post(request, post_id):
+    post = Post.objects.get(pk=post_id)
+    if request.user != post.poster:
+        return HttpResponseForbidden("You can only delete your own posts!")
+    else:
+        post.delete()
+        return HttpResponseRedirect(reverse('social:home'))
+```
+
+We're using two new things here: the `delete()` method, and the `HttpResponseForbidden`. The delete method, when called on a database object, deletes that object from the database (duh..). The `HttpResponseForbidden` is returned whenever you're trying to delete someone else's post (even though you can't see the delete button, you could still access the underlying URL). 
+Make sure to add `HttpResponseForbidden` to your imports!
+```python
+from django.http import HttpResponseRedirect, HttpResponseBadRequest, HttpResponseForbidden
+```
+
+Finally, we'll need to add a url. However, as you can see in the view, the `delete_post` method gets an extra parameter: `post_id`. This is how to do that:
+```python
+url(r'post/delete/(?P<post_id>[0-9]+)/$',   views.delete_post, name="delete_post"),
+```
+Add this line to the `urlpatterns` in `social/urls.py`. The `(?P<post_id>[0-9]+)` ties a parameter name to a regular expression. In this case, the regular expression matches one or more digits between 0 and 9: the post id. To delete a post, simply visit the url `/post/delete/<post_id>`!
+
+Since the delete button we've just added is linked to this url, you should now be able to delete your test posts and clean up your home page!
+
+# Step 10
+## Your turn!
+
+You know have a pretty cool basic social web-app! This is also the end of the tutorial. However, there are a lot more features that could make this app even cooler! Here's a list of things we could think of:
+* Create a profile page that lists details about a user
+* Make comments deletable too
+* Support 'Friendships': link users together, and only show posts made by friends on their home page
+* Create a 'Like' and 'Dislike' button on posts or comments
+* Comment on comments!
+* Create a signup page where new member can register
+
+We'll be around to help if you'd like to create any of these features, or any that you can think of yourselves!
+
+We hope you enjoyed this tutorial!
 
 
 

@@ -1,6 +1,6 @@
 from django.shortcuts import render
 from django.contrib.auth import authenticate, login
-from django.http import HttpResponseRedirect, HttpResponseBadRequest
+from django.http import HttpResponseRedirect, HttpResponseBadRequest, HttpResponseForbidden
 from django.core.urlresolvers import reverse
 from django.contrib.auth.decorators import login_required
 from social.models import Post, Comment
@@ -51,7 +51,7 @@ def home(request):
             posts = Post.objects.filter(text__icontains=search_term)
         else:
             return HttpResponseBadRequest(check[1])
-    return render(request, 'social/home.html', {'posts': posts})
+    return render(request, 'social/home.html', {'posts': posts, 'user': request.user})
 
 
 @login_required
@@ -85,4 +85,16 @@ def add_comment(request):
         return HttpResponseRedirect(reverse('social:home'))
     else:
         return HttpResponseBadRequest(check[1])
+
+
+@login_required
+def delete_post(request, post_id):
+    post = Post.objects.get(pk=post_id)
+    if request.user != post.poster:
+        return HttpResponseForbidden("You can only delete your own posts!")
+    else:
+        post.delete()
+        return HttpResponseRedirect(reverse('social:home'))
+
+
 
