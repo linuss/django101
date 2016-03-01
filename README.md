@@ -6,7 +6,8 @@ To get started, please follow the instructions in this document. If you ever get
 
 # Prerequisites
 
-In order to complete this tutorial, you'll need to have some stuff installed on your system. We'd like to refer you to the excellent [Installation chapter of Django for Girls] (http://tutorial.djangogirls.org/en/installation/index.html) (please don't feel offended if you're not a girl, we're pretty sure these instructions are unisex :))
+In order to complete this tutorial, you'll need to have some stuff installed on your system. We'd like to refer you to the excellent [Installation chapter of Django for Girls] (http://tutorial.djangogirls.org/en/installation/index.html) (please don't feel offended if you're not a girl, we're pretty sure these instructions are unisex :)) If you're going through the steps outlined there, you can stop at the 'Install Git' section: we won't be dealing with git in this tutorial. If you're already
+familiar with git you are of course free to use it, but it won't be necessary. 
 
 # Step 1
 ## Initializing the project
@@ -144,11 +145,11 @@ Now, in your editor, create a new file called index.html in the directory `socia
 
     <form action="{% url 'social:login' %}" method="post">
       {% csrf_token %}
-      <input type="text" name="username" id="username-input">
+      <input required type="text" name="username" id="username-input">
       <label for="username-input">Username</label> <br />
-      <input type="password" name="password" id="password-input">
+      <input required type="password" name="password" id="password-input">
       <label for="password-input">Password</label> <br />
-    <input type="submit"/>
+      <button type="submit"/>Log in</button>
     </form>
   </body>
 </html>
@@ -269,10 +270,10 @@ To do this, we'll first create the home template. Create the file `social/templa
   </head>
   <body>
     <div id='new-post'>
-      <h1> Write a new post <h1>
+      <h1> Write a new post </h1>
       <form action="{% url 'social:add_post' %}" method="post" id='new-post-form'>
       {% csrf_token %}
-        <textarea name='text' form='new-post-form' placeholder="Write your post here..."></textarea> 
+        <textarea name='text' form='new-post-form' required placeholder="Write your post here..."></textarea> 
         <input type='submit'/>
       </form>
     </div>
@@ -280,7 +281,7 @@ To do this, we'll first create the home template. Create the file `social/templa
 
     {% for post in posts %}
     <div class='post' id="{{post.id}}">
-      <p>{{post.text}}<p>
+      <p>{{post.text}}</p>
       <p>{{post.date_time}}</p>
     </div>
     {% endfor %}
@@ -351,6 +352,267 @@ LOGIN_URL = '/'
 ```
 
 Now try to view `localhost:8000/home` again in an Incognito window. Instead of showing the posts, you should be redirected to the regular index page which asks for your username and password!
+
+# Step 5
+## Add posts and comments
+
+So now that we have the basics in place, lets implement the necessary functionality to post posts! We'll first write the view. Open `social/views.py` and add the following content:
+
+```python
+def add_post(request)
+    new_post = Post()
+    new_post.text = request.POST['text']
+    new_post.poster = request.user
+    new_post.save()
+    return HttpResponseRedirect(reverse('social:home'))
+```
+
+Alright, awesome! We can now save posts! However, this code isn't very safe: there's a few things that could go wrong here:
+* This view might be called using a request that is not a POST-request (GET, PUT, UPDATE or DELETE). That's not allowed!
+* The view might be called with a POST request, but not contain the 'text' key, which crashes our view!
+* The 'text parameter might exists, but the string could be empty! We don't want people being able to post empty statusses.
+
+So, if any of these situations occurs, we'd like to return a `HttpResponseBadRequest`. However, all of the situations above could occur at any view that requires a post request and parameters. Therefore instead of writing some checks in every view, we've written a single function that checks everything:
+
+```python
+def _check_post_request(request, keys):
+    # Check that the request method is POST
+    if request.method != 'POST':
+        return (False, "This method should be called with a POST method!")
+    for key in keys:
+        # Check that the key exists
+        if key not in request.POST:
+            return (False, "The POST request should contain a {} field".format(key))
+        # Check that the text is not empty
+        if not request.POST[key]:
+            return (False, "The {} field cannot be empty!".format(key))
+
+    return (True, "Everything is alright!")
+```
+
+This function takes a request object and a list of keys that are expected for this view. It then checks all the situations mentioned above. The function then returns a tuple with a boolean and a string. The boolean will be False if something is wrong, and True if everything checks out. The string describes what went wrong (or right). 
+
+Now we can add it to the add_posts method like this:
+```python
+def add_post(request):
+    check = _check_post_request(request, ['text'])
+    if check[0]:
+        new_post = Post()
+        new_post.text = request.POST['text']
+        new_post.poster = request.user
+        new_post.save()
+        return HttpResponseRedirect(reverse('social:home'))
+    else:
+        return HttpResponseBadRequest(check[1])
+```
+
+We have another view that expects a POST request though: the `social_login` view! Let's add these checks there as well:
+
+```python
+def social_login(request):
+   check = _check_post_request(request, ['username', 'password'])
+   if check[0]:
+       user = authenticate(username=request.POST['username'], password=request.POST['password']) 
+       if user is not None:
+           login(request, user)
+           return HttpResponseRedirect(reverse('social:home'))
+       else:
+           return HttpResponseBadRequest("The combination of username and password does not exist.")
+   else:
+       return HttpResponseBadRequest(check[1])
+```
+
+While our own front-end should never get any of these wrong, it's never bad to expect the [worst] (https://en.wikipedia.org/wiki/Defensive_programming). Also, if we make an error when writing our front-end, we'll now catch the error and get a proper message to tell us what went wrong. 
+
+Aside from Posts, we've also made room in our database for comments on these posts. We'll write the functionality for posting and displaying comments now too, as it's very similar to Posts.
+
+In home.html, add the following lines:
+
+```html
+{% for post in posts %}
+<div class='post' id="{{post.id}}">
+	<p>{{post.text}}</p>
+	<p>{{post.date_time}}</p>
+	<div class='comments'>
+		<ul>
+			{% for comment in post.comment_set.all %}
+			<li> {{comment.text}} - {{comment.poster.username}} ({{comment.date_time}}) </li>
+			{% endfor %}
+		</ul>
+	</div>
+	<form action="{% url 'social:add_comment' %}" method="post">
+	{% csrf_token %}
+		<input type='text' name='comment' required placeholder="Write your comment here..."/>
+		<input type='hidden' name='post_id' value={{post.id}} />
+		<input type='submit'/>
+	</form>
+</div>
+{% endfor %}
+```
+
+As you might have guessed, we'll now need to add the `add_comment` view. Open `social/views.py` and add:
+
+```python
+
+@login_required
+def add_comment(request):
+    check = _check_post_request(request, ['comment', 'post_id'])
+    if check[0]:
+        new_comment = Comment()
+        new_comment.poster = request.user 
+        new_comment.text = request.POST['comment']
+        try:
+            post = Post.objects.get(pk=request.POST['post_id'])
+            new_comment.post = post
+        except Post.DoesNotExist:
+            return HttpResponseBadRequest("There is no Post with id {}".format(request.POST['post_id']))
+        new_comment.save()
+        return HttpResponseRedirect(reverse('social:home'))
+    else:
+        return HttpResponseBadRequest(check[1])
+```
+
+This view looks very similar to the `add_post` view, but there is one important difference: a comment always needs to be linked to a Post object. We're sending the ID of the post to which we want to attach a comment through the form, so we can look up the right post in our view. This is done in the line `post = Post.objects.get(pk=request.POST['post_id'])`. The `get()` function takes as argument a field and a value of the model on which it is called. In our case, we use `pk` which stands for Primary Key. 
+The `get()` function will only succeed if there is only one model that corresponds to our arguments. We can be pretty sure there is only one Post with a certain ID, because this is enforced by the database. However, we could in theory try to save a comment on a post which does not exist. This is why the `get()` statement is wrapped in a `try` statement. If the operation fails, an `HttpResponseBadRequest` will be returned. 
+
+At this point we have a basic functioning social network! It looks kind of shabby though, so we'll add some formatting next.
+
+# Step 6
+## Layout and Formatting
+
+We now have a working (albeit very basic) social network! However, it doesn't look like much yet, so we'll add some styling. If you are familiar with HTML and CSS, please feel free to use your own styling. 
+Seeing as we are developers and not graphic designers, we've chosen to use all the help we could get and use [Bootstrap] (http://getbootstrap.com/), a CSS framework developed by Twitter. This allows us to very quickly style a page that looks presentable.
+
+To get started, in the social directory create a directory called `static`, which in turn contains a directory called `social`. In this directory, download the [latest version] (https://github.com/twbs/bootstrap/releases/download/v3.3.6/bootstrap-3.3.6-dist.zip) of Bootstrap and unzip it.
+
+To load the static files into our HTML pages, first open `index.html` and change the `<head>` portion to look like this:
+```html
+<head>
+  {% load staticfiles %}
+  <title> Welcome to Social! </title>
+  <link rel="stylesheet" href="{% static 'social/bootstrap-3.3.6-dist/css/bootstrap.css' %}"></link>
+  <link rel="stylesheet" href="{% static 'social/bootstrap-3.3.6-dist/css/bootstrap-theme.css' %}"></link>
+</head>
+```
+
+In order to get the most out of Bootstrap, you'll need to add some classes to your elements. Edit your `index.html` file to look like this:
+```html
+<html>
+  <head>
+    {% load staticfiles %}
+    <title> Welcome to Social! </title>
+    <link rel="stylesheet" href="{% static 'social/bootstrap-3.3.6-dist/css/bootstrap.css' %}"></link>
+    <link rel="stylesheet" href="{% static 'social/bootstrap-3.3.6-dist/css/bootstrap-theme.css' %}"></link>
+  </head>
+  <body role='document'>
+    <div class="container">
+      <div class='jumbotron'>
+        <h1> Welcome to Social, the least useful social network! </h1>
+      </div>
+      <div class='row'>
+        <div class='col-xs-8 panel panel-default'>
+          <div class='panel-body'>
+            <p> Social is a minimalistic social network that allows you to share
+            writings and pictures with the world. Don't bother with friends, share
+            with everyone!
+            </p>
+          </div>
+        </div>
+        <div class='col-xs-4'>
+          <h2> Please sign in to continue </h2>
+
+          <form action="{% url 'social:login' %}" method="post">
+            {% csrf_token %}
+            <div class='form-group'>
+              <label for="username-input">Username</label>
+              <input type="text" class="form-control" required name="username" id="username-input"> 
+            </div>
+            <div class='form-group'>
+              <label for="password-input">Password</label>
+              <input type="password"  class="form-control"  required name="password" id="password-input"> 
+            </div>
+            <button type="submit" class="btn btn-primary">Log in</button>
+          </form>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>
+```
+
+We'll do something very similar in `home.html`. Edit your file to look like this:
+```html
+<html>
+  <head>
+    {% load staticfiles %}
+    <title> Social </title>
+    <link rel="stylesheet" href="{% static 'social/bootstrap-3.3.6-dist/css/bootstrap.css' %}"></link>
+    <link rel="stylesheet" href="{% static 'social/bootstrap-3.3.6-dist/css/bootstrap-theme.css' %}"></link>
+
+  </head>
+  <body>
+    <div class='container'>
+
+      <!-- New post container -->
+      <div class='row'>
+        <div class='col-xs-8 col-xs-offset-2'>
+          <div class='panel panel-primary' id='new-post'>
+            <div class='panel-body'>
+              <h1> Write a new post </h1>
+              <form action="{% url 'social:add_post' %}" method="post" id='new-post-form'>
+              {% csrf_token %}
+                <div class='form-group'>
+                  <textarea class='form-control'name='text' form='new-post-form' required placeholder="Write your post here..."></textarea> 
+                </div>
+                <button type='submit' class='btn btn-default'>Post</button>
+              </form>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Previous posts container -->
+      <div class='row'>
+        <div class='col-xs-8 col-xs-offset-2'>
+          {% for post in posts %}
+          <div class='panel panel-default' id="{{post.id}}">
+            <div class='panel-heading'>
+              <h4>{{post.poster.username}}</h4>
+              <h4 class='small'>posted on {{post.date_time}}</h4>
+            </div>
+            <div class='panel-body'>
+              <p class='lead'>{{post.text}}</p>
+            </div>
+            <div class='row'>
+              <div class='col-xs-10 col-xs-offset-1'>
+                <ul class='list-group'>
+                  {% for comment in post.comment_set.all %}
+                  <li class='list-group-item'> 
+                    {{comment.text}} - {{comment.poster.username}} ({{comment.date_time}}) 
+                  </li>
+                  {% endfor %}
+                </ul>
+                <form action="{% url 'social:add_comment' %}" method="post">
+                {% csrf_token %}
+                  <div class='form-group'>
+                    <input class='form-control' type='text' name='comment' required placeholder="Write your comment here..."/>
+                  </div>
+                  <input type='hidden' name='post_id' value={{post.id}} />
+                  <button class='btn btn-default' type='submit'>Submit</button>
+                </form>
+              </div>
+            </div>
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+  </body>
+</html>
+```
+
+To check the results of your new stylings, make sure `python3 manage.py runserver` is (still) running, and open `localhost:8000` in your browser. That looks a lot better, right?!
+
 
 
 
