@@ -218,7 +218,7 @@ In the social_login view, we'd like to authenticate the user. In our index.html 
 Open the `social/views.py` file and add the following:
 
 ```python
-def login(request):
+def social_login(request):
    user = authenticate(username=request.POST['username'], password=request.POST['password']) 
    if user is not None:
        login(request, user)
@@ -299,7 +299,7 @@ def home(request):
     posts = Post.objects.all()
     return render(request, 'social/home.html', {'posts': posts})
 
-def add_posts(request):
+def add_post(request):
     pass
 ```
 
