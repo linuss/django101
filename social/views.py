@@ -42,7 +42,15 @@ def social_login(request):
 
 @login_required
 def home(request):
-    posts = Post.objects.all().order_by('-date_time')
+    if request.method == 'GET':
+        posts = Post.objects.all().order_by('-date_time')
+    if request.method == 'POST':
+        check = _check_post_request(request, ['search_terms'])
+        if check[0]:
+            search_term = request.POST['search_terms']
+            posts = Post.objects.filter(text__icontains=search_term)
+        else:
+            return HttpResponseBadRequest(check[1])
     return render(request, 'social/home.html', {'posts': posts})
 
 

@@ -9,8 +9,8 @@
   <body>
     <div class='container'>
 
-      <!-- New post container -->
       <div class='row'>
+        <!-- New post container -->
         <div class='col-xs-8 col-xs-offset-2'>
           <div class='panel panel-primary' id='new-post'>
             <div class='panel-body'>
@@ -29,6 +29,20 @@
                 <button type='submit' class='btn btn-default'>Post</button>
               </form>
             </div>
+          </div>
+        </div>
+
+        <!-- Search box -->
+        <div class='col-xs-2'>
+          <div class='well'>
+            <form action="{% url 'social:home' %}" method="post" id='search-bar'>
+              {% csrf_token %}
+              <div class='form-group'>
+                <input type='text' class='form-control' name='search_terms' required placeholder='Search in posts...'>
+              </div>
+              <button type='submit' class='btn btn-primary'>Search</button>
+            </form>
+            <a class='btn btn-success' href="{% url 'social:home' %}">Show all</a>
           </div>
         </div>
       </div>

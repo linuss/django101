@@ -726,6 +726,79 @@ new_post.save()
 
 That's it! You can now upload and view photos! 
 
+## Searching for posts
+
+Let's implement a little bit of search functionality! This will show some handy aspects of the Django ORM.
+
+First, we'll create a search box. Open up `home.html`, and edit the `New post container` to look like this:
+```html
+<div class='row'>
+  <!-- New post container -->
+  <div class='col-xs-8 col-xs-offset-2'>
+    <div class='panel panel-primary' id='new-post'>
+      <div class='panel-body'>
+        <h1> Write a new post </h1>
+        <form action="{% url 'social:add_post' %}" method="post" id='new-post-form' enctype='multipart/form-data'>
+        {% csrf_token %}
+          <div class='form-group'>
+            <textarea class='form-control'name='text' form='new-post-form' required placeholder="Write your post here..."></textarea> 
+          </div>
+          <div class='form-group'>
+            <input id='photo-upload' class='form-control' 
+                   type='file' name='photo' accept='image/*'>
+            </input>
+            <label for='photo-upload'>Upload a photo</label>
+          </div>
+          <button type='submit' class='btn btn-default'>Post</button>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- Search box -->
+  <div class='col-xs-2'>
+    <div class='well'>
+      <form action="{% url 'social:home' %}" method="post" id='search-bar'>
+        {% csrf_token %}
+        <div class='form-group'>
+          <input type='text' class='form-control' name='search_terms' required placeholder='Search in posts...'>
+        </div>
+        <button type='submit' class='btn btn-primary'>Search</button>
+      </form>
+      <a class='btn btn-success' href="{% url 'social:home' %}">Show all</a>
+    </div>
+  </div>
+</div>
+```
+
+Notice that we've created a button and a link: the button will, just like all previous forms, send your parameters to the backend. The link will just return you to the default home page. 
+
+Now, we'll need to adapt the home view so it can deal with any search parameters. Open `views.py` and edit `home` to look like this:
+```python
+@login_required
+def home(request):
+    if request.method == 'GET':
+        posts = Post.objects.all().order_by('-date_time')
+    if request.method == 'POST':
+        check = _check_post_request(request, ['search_terms'])
+        if check[0]:
+            search_term = request.POST['search_terms']
+            posts = Post.objects.filter(text__icontains=search_term)
+        else:
+            return HttpResponseBadRequest(check[1])
+    return render(request, 'social/home.html', {'posts': posts})
+```
+As you can see, the home view can now deal with two kinds of requests: regular GET requests and POST requests.
+Just like our other post requests, we start with checking if everything is in order. Then, once we've gotten the search parameters from the request, we get our Post objects, but with a condition: the post text must contain the search terms. 
+This introduces another important part of the Django ORM: `filter()`. Filtering results from a database is a very common operation. In this case, we're looking for any posts which texts contain our search terms. If we would like to match text completely, we could write `filter(text=<our search term>)`. The filter method can be used on any of the fields in our model. For example, say we'd only want comments posted in 2016, we could do something like:
+```python
+
+import datetime
+
+cutoff = datetime.datetime(year=2016)
+comments = Comment.objects.filter(date_time__gt=cutoff)
+```
+Et voila! (Note: the `__gt` bit means Greater Than). 
 
 
 
