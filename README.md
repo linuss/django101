@@ -6,8 +6,7 @@ To get started, please follow the instructions in this document. If you ever get
 
 # Prerequisites
 
-In order to complete this tutorial, you'll need to have some stuff installed on your system. We'd like to refer you to the excellent [Installation chapter of Django for Girls] (http://tutorial.djangogirls.org/en/installation/index.html) (please don't feel offended if you're not a girl, we're pretty sure these instructions are unisex :)) If you're going through the steps outlined there, you can stop at the 'Install Git' section: we won't be dealing with git in this tutorial. If you're already
-familiar with git you are of course free to use it, but it won't be necessary. 
+In order to complete this tutorial, you'll need to have some stuff installed on your system. We'd like to refer you to the excellent [Installation chapter of Django for Girls] (http://tutorial.djangogirls.org/en/installation/index.html) (please don't feel offended if you're not a girl, we're pretty sure these instructions are unisex :))
 
 # Step 1
 ## Initializing the project
@@ -358,6 +357,152 @@ LOGIN_URL = '/'
 ```
 
 Now try to view `localhost:8000/home` again in an Incognito window. Instead of showing the posts, you should be redirected to the regular index page which asks for your username and password!
+
+# Intermezzo -- Deploying!
+
+This part of the workshop is placed here because it's probably a good idea to do it while there are other people around -- not because it is a logical next step in the tutorial.
+It's all about making your creating available to the outside world by deploying it to some resource available to everyone.
+You can skip it (for now) if you think it's not necessary or if you think you'll figure this out on your own, but we advise to do it while there are other people around since you have to be precise and since it's not always clear what goes wrong in this part.
+
+## Introduction 
+Deploying your application is an important step: it makes your app available to anyone who's interested to join in on your awesome new and super-creative piece of work! Publishing work online is usually called 'deploying'. As the internet can be unsafe, there can be differences to a local version and an online version: the local version is usually called the 'development' version whereas the online version is called the 'production' version.
+
+There are lots of ways to deploy a Django app and most of the trade-offs are really not that interesting until you know your specific business case: do you expect huge amounts of traffic? Do you want to use your own computer for hosting or is some online solution good enough? What's the budget?
+Since most of these are not that relevant for this workshop, we'll proceed by deploying in a way that will probably fit everyone's 'requirements' for today: it shouldn't take too long and it should be free.
+
+We'll start by introducing Git, which we'll use to share our code with the world (we're not that secretive about our code) and proceed by showing how to make your app itself accessible through PythonAnywhere.
+
+But before we can start any of this, we have to update our ``settings.py`` file to be production-ready. Add the following file:
+```python
+STATIC_ROOT = os.path.join(BASE_DIR, 'static')
+```
+
+## Git
+Git is a very popular 'version control system'.
+It tracks changes to files over time so that any version can be recalled later on.
+The concept is comparable to "track changes" in Microsoft Word or the "Previous versions" feature of Dropbox, but it's way more refined and allows an amazing amount of control.
+
+### Starting a repository
+Git tracks changes to files in a specific directory (folder), which is called a code repository. Let's start one for our app!
+Open a terminal in the topmost ``django101`` directory and run:
+```bash
+$ git init
+$ git config --global user.name "Your Name"
+$ git config --global user.email you@example.com
+```
+
+Git is no tracking the changes to all files in the topmost directory: you've succesfully created your first *repo* ;)
+Since there will be some changes to the repository that are irrelevant, we proceed by telling Git which changes *not* to track: open a new file in your editor, add the following contents and save in the topmost ``django101`` directory with the name ``.gitignore``:
+```
+*.pyc
+__pycache__
+myvenv
+db.sqlite3
+/static
+.DS_Store
+```
+
+Git will now ignore changes to these files. Changes to all other files will be tracked for you automatically. We'll look into how this is useful next!
+
+### Adding stuff
+
+After having 'initialized' the repository (whatever that may be), let's check out what Git thinks of our work so far:
+```bash
+$ git status
+```
+It should list all your files for this project as 'untracked' (except for everything in the `.gitignore` file).
+
+We'll add all files and save our changes:
+```bash
+$ git add --all # this is telling git that you want to add everything it's tracking
+$ git commit -m "My awesome web-app, first commit"
+```
+
+### Publishing your code
+
+[GitHub.com](https://www.github.com) is a place for saving and sharing code. Log in, create a new repository called 'django101'. Leave the "initialise with a README" checkbox unticked, leave the .gitignore option blank and leave License to None.
+
+A screen will appear which shows your repo's clone URL. Switch to "HTTPS" and copy it. Switch to a terminal in the topmost ``django101`` directory and type:
+```bash
+# replace <your-github-username> with your actual username
+$ git remote add origin https://github.com/<your-github-username>/my-first-blog.git
+$ git push -u origin master
+```
+
+Enter your GitHub username and password when prompted and check out what happens: your code will be published to GitHub is now published for the world to see!
+You can check it out by browsing to `https://github.com/<your-github-username>/django101`
+
+## PythonAnywhere
+Now that we've shared our code with the world, it's time to make not only the *code*, but also the *actual app* available.
+
+Browse to [PythonAnywhere.com](https://www.pythonanywhere.com) and log in. Choose the option to start a "Bash console". It's a way to access a terminal similar to the one you've been using today, except for that's it not on your computer but on a PythonAnywhere server. You can baffle your friends by telling you're creating an app 'in the cloud' ;)
+
+### Getting the code on PythonAnywhere
+To fetch the code from GitHub onto PythonAnywhere you can create a "clone" of the repo:
+```bash
+$ $ git clone https://github.com/<your-github-username>/django101.git
+```
+
+Now it's time to set up a virtualenv. This ensures that everything you install for your app is installed in *isolation* and won't affect any further projects you deploy on PythonAnywhere:
+```
+$ cd django101
+$ virtualenv --python=python3.4 myenv
+$ source myenv/bin/activate
+(myenv) $ pip install django==1.9 pillow # installs the packages on PythonAnywhere
+(myenv) $ python manage.py migrate # installs the database on PythonAnywhere
+(myenv) $ python manage.py createsuperuser # creates the user on PythonAnywhere
+```
+
+The final step in setting up a deployment is a new one. It is one of those things that is necessary in production because of the different goals from development that you usually have in deploying.
+It revolves around Django going through all apps with a vacuum cleaner in order to collect all static files and placing them in a single directory.
+This is convenient when you want to server loads of static files through some high-performance static file server.
+In order to do this, type:
+```bash
+(myenv) $ python manage.py collectstatic
+```
+Type `yes` when prompted.
+
+### Going live!
+We've now got our code, dependencies and database on PythonAnywhere, so it's time to give live and conquer the world with our awesome social app!
+
+Go back to the PythonAnywhere dashboard by clicking on its logo and go to the *Web* tab. Hit *Add a new web app*.
+
+Confirm the domain name and select *manual configuration*. Make sure you don't select the "Django" option here!!! Next, choose Python3.4 and click Next to finalize to exit the wizard.
+
+You are now in a PythonAnywhere config screen for your webapp. Go to the "Virtualenv" section, click the red text that says "Enter the path to a virtualenv and enter `/home/<your-pythonanywhere-username>/django101/myenv/`. Click the blue box with the check mark to save the path.
+
+Now click the 'WSGI configuration file' link (in the "Code" section near the top of the page). Delete all contents and replace them with something like this:
+
+```python
+import os
+import sys
+
+path = '/home/<your-pythonanywhere-username>/django101'  # use your own username here
+if path not in sys.path:
+    sys.path.append(path)
+
+os.environ['DJANGO_SETTINGS_MODULE'] = 'django101.settings'
+
+from django.core.wsgi import get_wsgi_application
+from django.contrib.staticfiles.handlers import StaticFilesHandler
+application = StaticFilesHandler(get_wsgi_application())
+```
+
+This step is necessary to tell PythonAnywhere where the web app lives and how its Django setting file can be found (along with some other things).
+
+Hit *Save* and then go back to the *Web* tab. Now hit the green reload button and surf to [https://<your-pythonanywhere-username>.pythonanywhere.com](https://<your-pythonanywhere-username>.pythonanywhere.com) and bask in your own awesomeness!
+
+## Going live! ... again
+Now that you've published *a* version of your app and felt how awesome it can be, you probably wan't to do it any time you've added something cool to your web app.
+This you can do by following these steps:
+* On your computer:
+	* `$ git add --all` to notify git that you want to add your changes
+	* `$ git commit -m "Some meaningful message"` to save your changes
+	* `$ git push -u origin master` to publish your changes on GitHub
+* On PythonAnywhere:
+	* Log in and select 'Bash console 12345670' under *Your consoles*
+  * `(myenv) $ git pull` to fetch the changes from GitHub
+  * `(myevn) $ python manage.py collectstatic` to copy your static files to the right place.
 
 # Step 5
 ## Add posts and comments
