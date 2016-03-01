@@ -857,7 +857,7 @@ Add this line to the `urlpatterns` in `social/urls.py`. The `(?P<post_id>[0-9]+)
 
 Since the delete button we've just added is linked to this url, you should now be able to delete your test posts and clean up your home page!
 
-# Step 10
+# Step 8
 ## Your turn!
 
 You know have a pretty cool basic social web-app! This is also the end of the tutorial. However, there are a lot more features that could make this app even cooler! Here's a list of things we could think of:
