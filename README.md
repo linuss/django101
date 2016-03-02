@@ -15,16 +15,16 @@ If you get stuck somewhere along the line, don't hesitate to ask around in the '
 ## Initializing the project
 
 Django contains a lot of tools and commands that help you quickly create web-apps. To start our project off, in your terminal please type
-```
-django-admin startproject django101
+```bash
+$ django-admin startproject django101
 ```
 
 This should create a django101 directory, which contains the basic necessities of a Django project.
 
 Enter the directory and create your app by typing
-```
-cd django101
-django-admin startapp social
+```bash
+$ cd django101
+$ django-admin startapp social
 ```
 
 We must also make Django aware of our new app. To do so, add `social` to the `INSTALLED_APPS` list in django101/settings.py.
@@ -42,16 +42,16 @@ Do so by opening this file in your favorite editor and adding it. The final resu
 ```
 
 Then, create the initial database by typing
-```
-python3 manage.py migrate
+```bash
+$ python3 manage.py migrate
 ```
 
 This creates a set of default database tables that we're going to need later.
 
 Finally, set up a superuser. This is necessary to be able to access the admin interface and create database entries for testing
 
-```
-python3 manage.py createsuperuser
+```bash
+$ python3 manage.py createsuperuser
 ```
 
 You are now ready to start creating your app!
@@ -92,9 +92,9 @@ You'll notice some properties have extra arguments. The ForeignKey argument dete
 
 
 To create the database tables, exit your editor and in the terminal go to the topmost django101 directory. There, type
-```
-python3 manage.py makemigrations social
-python3 manage.py migrate
+```bash
+$ python3 manage.py makemigrations social
+$ python3 manage.py migrate
 ```
 
 That's it! You now have the required database tables to build our web-app.
@@ -129,8 +129,8 @@ As mentioned earlier, a Django view will need to return something to display in 
 A Django template file is in many ways very similar to a regular HTML page. The difference is that you can add special Django-specific tags and keywords to help you. This is often useful to embed data retrieved from the database on the page you're returning. 
 
 Now, to create our first template. In the social directory, issue the following commands:
-```
-mkdir -p templates/social
+```bash
+$ mkdir -p templates/social
 ```
 
 The following directory structure should now exist: `django101/social/templates/social`. The double use of social seems unnecessary, but that's just how Django works (and there's probably a very good reason for it :)). By placing our templates in this directory, Django will automatically know where to find them (remember the render function call in the index view: all we gave as the template argument was `'social/index.html'`)
@@ -209,7 +209,13 @@ def social_login(request):
 
 We'll implement this view in the next step. 
 
-Now, to see if everything works, go to the top directory and type `python3 manage.py runserver`. This starts the Django development server, so you can test your website! Open a browser and enter `localhost:8000` in the URL bar. You should be greated by our new site!
+Now, to see if everything works, go to the top directory and type
+```bash
+$ python3 manage.py runserver
+```
+
+
+This starts the Django development server, so you can test your website! Open a browser and enter `localhost:8000` in the URL bar. You should be greated by our new site!
 
 # Step 3
 ## Logging In
@@ -255,7 +261,7 @@ url(r'home/', views.home, name='home'),
 ```
 to the `urlpatterns` list
 
-That's it! We're now able to login to our webapp! There's nothing really to show yet, but we'll get to that next. Remember to try if everything works by going to the top directory and typing `python3 manage.py runserver`, and then browsing to `localhost:8000`. You can try logging in with the username and password you created in step 1, and try logging in with a user that doesn't exist.
+That's it! We're now able to login to our webapp! There's nothing really to show yet, but we'll get to that next. Remember to try if everything works by going to the top directory and typing `$ python3 manage.py runserver`, and then browsing to `localhost:8000`. You can try logging in with the username and password you created in step 1, and try logging in with a user that doesn't exist.
 
 # Step 4
 ## Add home view and template
@@ -354,6 +360,152 @@ LOGIN_URL = '/'
 ```
 
 Now try to view `localhost:8000/home` again in an Incognito window. Instead of showing the posts, you should be redirected to the regular index page which asks for your username and password!
+
+# Intermezzo -- Deploying!
+
+This part of the workshop is placed here because it's probably a good idea to do it while there are other people around -- not because it is a logical next step in the tutorial.
+It's all about making your creation available to the outside world by deploying it to some resource available to everyone.
+You can skip it (for now) if you think it's not necessary or if you think you'll figure this out on your own, but we advise to do it while there are other people around since you have to be precise and since it's not really easy to debug stuff that's treated in this part.
+
+## About deployment
+Deploying your application is an important step: it makes your app available to anyone who's interested to join in on your awesome new and super-creative piece of work! Publishing work online is usually called 'deploying'. As the internet can be unsafe, there can be differences to a local version and an online version: the local version is usually called the 'development' version whereas the online version is called the 'production' version.
+
+There are lots of ways to deploy a Django app and most of the trade-offs are really not that interesting until you know your specific use case: do you expect huge amounts of traffic? Do you want to use your own computer for hosting or is some online solution good enough? What's the budget?
+Since most of these are not that relevant for this workshop, we'll proceed by deploying in a way that will probably fit everyone's 'requirements' for today: it shouldn't take too long and it should be free.
+
+We'll start by introducing Git, which we'll use to share our code with the world (we're not that secretive about our code) and proceed by showing how to make your app itself accessible through PythonAnywhere.
+
+But before we can start any of this, we have to update our ``settings.py`` file to be production-ready. Add the following line:
+```python
+STATIC_ROOT = os.path.join(BASE_DIR, 'static')
+```
+
+## Git
+Git is a very popular 'version control system'.
+It tracks changes to files over time so that any version can be recalled later on.
+The concept is comparable to "track changes" in Microsoft Word or the "Previous versions" feature of Dropbox, but it's way more refined and allows an amazing amount of control.
+
+### Starting a repository
+Git tracks changes to files in a specific directory (folder), which is called a code repository. Let's start one for our app!
+Open a terminal in the topmost ``django101`` directory and run:
+```bash
+$ git init
+$ git config --global user.name "Your Name"
+$ git config --global user.email you@example.com
+```
+
+Git is now tracking the changes to all files in the topmost directory: you've succesfully created your first *repo* ;)
+Since there will be some changes to the repository that are irrelevant, we proceed by telling Git which changes *not* to track: open a new file in your editor, add the following contents and save in the topmost ``django101`` directory with the name ``.gitignore``:
+```
+*.pyc
+__pycache__
+myvenv
+db.sqlite3
+/static
+.DS_Store
+```
+
+Git will now ignore changes to these files. Changes to all other files will be tracked for you automatically. We'll look into how this is useful next.
+
+### Adding stuff
+
+After having 'initialized' the repository (whatever that may be), let's check out what Git thinks of our work so far:
+```bash
+$ git status
+```
+It should list all your files for this project as 'untracked' (except for everything in the `.gitignore` file).
+
+We'll add all files and save our changes:
+```bash
+$ git add --all # this tells git that you want to add all changes it has found.
+$ git commit -m "My awesome web-app, first commit" # this is the Git equivalent to saving your work.
+```
+
+### Publishing your code
+
+[GitHub.com](https://www.github.com) is a place for storing and sharing code. Log in and create a new repository called 'django101'. Leave the "initialise with a README" checkbox unticked, leave the .gitignore option blank and leave License to None.
+
+A screen will appear which shows your repo's clone URL. Switch to "HTTPS" and copy it. Open a terminal in the topmost ``django101`` directory and type:
+```bash
+# replace <your-github-username> with your actual username
+$ git remote add origin https://github.com/<your-github-username>/my-first-blog.git
+$ git push -u origin master
+```
+
+Enter your GitHub username and password when prompted and check out what happens: your code is now published to GitHub for the world to see!
+You can check it out by browsing to [https://github.com/<your-github-username>/django101](https://github.com/<your-github-username>/django101).
+
+## PythonAnywhere
+Now that we've shared our code with the world, it's time to make not only the *code*, but also the *actual app* available.
+
+Browse to [PythonAnywhere.com](https://www.pythonanywhere.com) and log in. Choose the option to start a "Bash console". It's a way to access a terminal similar to the one you've been using today, except for that's it not on your computer but on a PythonAnywhere server. You can baffle your friends by telling you're creating an app 'in the cloud' ;)
+
+### Getting the code on PythonAnywhere
+To fetch the code from GitHub onto PythonAnywhere you can create a "clone" of the repo:
+```bash
+$ git clone https://github.com/<your-github-username>/django101.git
+```
+
+Now it's time to set up a virtualenv. This ensures that everything you install for your app is installed in *isolation* and won't affect any further projects you deploy on PythonAnywhere:
+```
+$ cd django101
+$ virtualenv --python=python3.4 myenv
+$ source myenv/bin/activate
+(myenv) $ pip install django==1.9 pillow # installs the packages on PythonAnywhere
+(myenv) $ python manage.py migrate # installs the database on PythonAnywhere
+(myenv) $ python manage.py createsuperuser # creates the user on PythonAnywhere
+```
+
+The final step in setting up a deployment is a new one. It is one of those things that is necessary in production because of the different requirements from development that you usually have when you're deploying.
+It revolves around Django going through all apps with a vacuum cleaner in order to collect all static files and placing them in a single directory.
+This is convenient when you want to load the static files through some high-performance static file server instead of a humble Python-based one.
+In order to do this, type:
+```bash
+(myenv) $ python manage.py collectstatic
+```
+Type `yes` when prompted.
+
+### Going live!
+We've now got our code, dependencies and database on PythonAnywhere, so it's time to give live and conquer the world with our awesome social app!
+
+Go back to the PythonAnywhere dashboard by clicking on its logo and go to the *Web* tab. Hit *Add a new web app*.
+
+Confirm the domain name and select *manual configuration*. Make sure you don't select the "Django" option here!!! Next, choose Python3.4 and click Next to exit the wizard.
+
+You are now in a PythonAnywhere config screen for your webapp. Go to the "Virtualenv" section, click the red text that says "Enter the path to a virtualenv" and enter `/home/<your-pythonanywhere-username>/django101/myenv/`. Click the blue box with the check mark to save the path.
+
+Now click the 'WSGI configuration file' link (in the "Code" section near the top of the page). Delete all contents and replace them with something like this (fill in your PythonAnywhere username):
+
+```python
+import os
+import sys
+
+path = '/home/<your-pythonanywhere-username>/django101'  # use your own username here
+if path not in sys.path:
+    sys.path.append(path)
+
+os.environ['DJANGO_SETTINGS_MODULE'] = 'django101.settings'
+
+from django.core.wsgi import get_wsgi_application
+from django.contrib.staticfiles.handlers import StaticFilesHandler
+application = StaticFilesHandler(get_wsgi_application())
+```
+
+This step is necessary to tell PythonAnywhere where the web app lives and how its Django setting file can be found (along with some other things).
+
+Hit *Save* and then go back to the *Web* tab. Now hit the green reload button and browse to [https://your-pythonanywhere-username.pythonanywhere.com](https://your-pythonanywhere-username-.pythonanywhere.com) (replace with your own username ofcourse) and bask in your own awesomeness!
+
+## Going live! ... again
+Now that you've published *a* version of your app and feel like a minor god because of it, you probably want to do it any time you've added something cool to your web app.
+This you can do by repeating these steps that were described above:
+* On your computer:
+	* `$ git add --all` to notify git that you want to add your changes
+	* `$ git commit -m "Some meaningful message"` to save your changes
+	* `$ git push -u origin master` to publish your changes on GitHub
+* On PythonAnywhere:
+	* Log in and select 'Bash console 12345670' under *Your consoles*
+  * `(myenv) $ git pull` to fetch the changes from GitHub
+  * `(myevn) $ python manage.py collectstatic` to copy your static files to the right place. Enter `yes` when prompted.
 
 # Step 5
 ## Add posts and comments
@@ -615,7 +767,7 @@ We'll do something very similar in `home.html`. Edit your file to look like this
 </html>
 ```
 
-To check the results of your new stylings, make sure `python3 manage.py runserver` is (still) running, and open `localhost:8000` in your browser. That looks a lot better, right?!
+To check the results of your new stylings, make sure `$ python3 manage.py runserver` is (still) running, and open `localhost:8000` in your browser. That looks a lot better, right?!
 
 # Step 7
 ## More database tricks
