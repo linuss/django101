@@ -1,4 +1,6 @@
+
 # Django 101: Build a web-app in a day
+[![Gitter](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/florisdenhengst/django101?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 
 Welcome to the Django 101: Build a web-app in a day tutorial! This git repository contains all the code you will have written yourself at the end of the day. The final result will be a small social network in which you can post statusses, pictures and comments.
 
@@ -6,8 +8,8 @@ To get started, please follow the instructions in this document. If you ever get
 
 # Prerequisites
 
-In order to complete this tutorial, you'll need to have some stuff installed on your system. We'd like to refer you to the excellent [Installation chapter of Django for Girls] (http://tutorial.djangogirls.org/en/installation/index.html) (please don't feel offended if you're not a girl, we're pretty sure these instructions are unisex :)) If you're going through the steps outlined there, you can stop at the 'Install Git' section: we won't be dealing with git in this tutorial. If you're already
-familiar with git you are of course free to use it, but it won't be necessary. 
+In order to complete this tutorial, you'll need to have some stuff installed on your system. We'd like to refer you to the excellent [Installation chapter of Django for Girls] (http://tutorial.djangogirls.org/en/installation/index.html) (please don't feel offended if you're not a girl, we're pretty sure these instructions are unisex :))
+If you get stuck somewhere along the line, don't hesitate to ask around in the 'Gitter' chat channel.
 
 # Step 1
 ## Initializing the project
