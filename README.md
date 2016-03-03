@@ -13,18 +13,20 @@ If you get stuck somewhere along the line, don't hesitate to ask around in the '
 
 # Step 1
 ## Initializing the project
-
-Django contains a lot of tools and commands that help you quickly create web-apps. To start our project off, in your terminal please type
+Django contains a lot of tools and commands that help you quickly create web-apps. To start our project off, in your terminal please type:
 ```bash
-$ django-admin startproject django101
+$ cd djangogirls/
+$ source myvenv/bin/activate
+(myvenv) $ django-admin startproject django101
+(myvenv) $ pip install pillow
 ```
 
-This should create a django101 directory, which contains the basic necessities of a Django project.
+This should create a new django101 directory, which contains the basic necessities of a Django project.
 
 Enter the directory and create your app by typing
 ```bash
-$ cd django101
-$ django-admin startapp social
+(myvenv) $ cd django101
+(myvenv) $ django-admin startapp social
 ```
 
 We must also make Django aware of our new app. To do so, add `social` to the `INSTALLED_APPS` list in django101/settings.py.
@@ -37,13 +39,13 @@ Do so by opening this file in your favorite editor and adding it. The final resu
       'django.contrib.sessions',
       'django.contrib.messages',
       'django.contrib.staticfiles',
-     'social'
+     'social',
  ]
 ```
 
 Then, create the initial database by typing
 ```bash
-$ python3 manage.py migrate
+(myvenv) $ python3 manage.py migrate
 ```
 
 This creates a set of default database tables that we're going to need later.
@@ -51,7 +53,7 @@ This creates a set of default database tables that we're going to need later.
 Finally, set up a superuser. This is necessary to be able to access the admin interface and create database entries for testing
 
 ```bash
-$ python3 manage.py createsuperuser
+(myvenv) $ python3 manage.py createsuperuser
 ```
 
 You are now ready to start creating your app!
@@ -59,13 +61,13 @@ You are now ready to start creating your app!
 # Step 2
 ## Creating your database models
 
-Most web-applications depend on data, which is stored in a database. Working with databases directly is often clunky however, so Django provides something called an ORM: an Object Relational Mapper. What this does is map regular Python classes to database tables, and objects to database rows. 
+Most web-applications depend on data, which is stored in a database. Working with databases directly is often clunky however, so Django provides something called an ORM: an Object Relational Mapper. What this does is map regular Python classes to database tables, objects to database rows and functions to (parts of) SQL queries.
 
 This might sound abstract, but follow along and it will become obvious soon. 
 
 For our simple social network, we are going to need to store three things: Users, Posts and Comments. Fortunately, Users are provided automatically by Django (in the django.contrib.auth module), so we won't have to worry too much about them. Posts and Comments however, we'll need to create ourselves.
 
-Let's create our models. Open the file models.py in the django101/social directory in your favorite editor, and edit it to contain the following:
+Let's create our models. Open the file `models.py` in the `django101/social` directory in your favorite editor, and edit it to contain the following:
 
 ```python
 from django.db import models
@@ -88,19 +90,20 @@ class Comment(models.Model):
 
 These classes will be read by Django and transformed into database tables. Both tables will have four columns, one for each property we have specified above. 
 The type of the property (TextField, ForeignKey etc.) specifies to Django what kind of columns to create in the database.
-You'll notice some properties have extra arguments. The ForeignKey argument determines to what other model this field refers. The auto_now=True argument for the DateTimeField makes sure that the current time is saved by default whenever a Post or Comment is added. The null=True and blank=True arguments for the ImageField specify that this is an optional field: you are allowed to create a post without an image.
+
+You'll notice some properties have extra arguments. The ForeignKey argument determines to what other model this field refers. The `auto_now=True` argument for the DateTimeField makes sure that the current time is saved by default whenever a Post or Comment is added. The `null=True` and `blank=True` arguments for the ImageField specify that this is an optional field: you are allowed to create a post without an image.
 
 
 To create the database tables, exit your editor and in the terminal go to the topmost django101 directory. There, type
 ```bash
-$ python3 manage.py makemigrations social
-$ python3 manage.py migrate
+(myvenv) $ python3 manage.py makemigrations social
+(myvenv) $ python3 manage.py migrate
 ```
 
 That's it! You now have the required database tables to build our web-app.
 If you ever decide to make changes to these models, make sure to run `makemigrations` and `migrate` again!
 
-# Step 2
+# Step 3
 ## Create your first views and templates
 
 In this step we will be creating our first views and templates. A view, which in most other MVC frameworks is called a Controller (confusing, we know...), is the code that is ran whenever you request a URL through your web browser. A view therefore must correspond with a url. 
@@ -112,30 +115,34 @@ The first view we will be making is the index view. This is the view that gets c
 To do this, we must write the index view. Open `django101/social/views.py` and add the following lines:
 
 ```python
+from django.shortcuts import render
+
+# Create your views here.
+
 def index(request):
     return render(request, 'social/index.html')
 ```
 
 As you can see, a view is nothing more than a Python function. A view always takes at least one parameter, the request object. This is something generated by Django that contains information about the request, such as which user made it and any parameters attached to the request. 
 
-Seeing as when you access the index page of your webapp nothing is yet known about you, the request object won't be of much use, so we won't do anything with it (yet). 
+Because the index page of your webapp is a login page, nothing is yet known about visitors: the request object won't be of much use, so we won't do anything with it (yet). 
 
 The index view returns the result of the render function (again provided by Django, as can be seen in the first line of the views file: `from django.shortcuts import render`). The render function takes two arguments: request, and the template we would like to return. We haven't created a template yet, but we'll get to that in a minute. For now, just fill in `"social/index.html"`.
 
 ### Templates
 
-As mentioned earlier, a Django view will need to return something to display in the browser. For our index view, we'd like to return an HTML page that contains a login form. However, instead of simply returning an HTML file, we are going to return a template.
+As mentioned earlier, a Django view will need to return something to display in the browser. For our index view, we'd like to return an HTML page that contains a login form. Instead returning a hand-wcrafted HTML file, we are going to use a template that from which an HTML file can be generated (or *rendered*). This makes it easier to adjust parts of the HTML file depending on the request, the number of users in the database or the time of the day.
 
-A Django template file is in many ways very similar to a regular HTML page. The difference is that you can add special Django-specific tags and keywords to help you. This is often useful to embed data retrieved from the database on the page you're returning. 
+A Django template is in many ways very similar to a regular HTML file. The difference is that you can add special Django-specific tags and keywords to help you. This is often useful to embed data retrieved from the database on the page you're returning. 
 
-Now, to create our first template. In the social directory, issue the following commands:
+To create our first template issue the following command in the `django101/social` directory:
 ```bash
 $ mkdir -p templates/social
 ```
 
 The following directory structure should now exist: `django101/social/templates/social`. The double use of social seems unnecessary, but that's just how Django works (and there's probably a very good reason for it :)). By placing our templates in this directory, Django will automatically know where to find them (remember the render function call in the index view: all we gave as the template argument was `'social/index.html'`)
 
-Now, in your editor, create a new file called index.html in the directory `social/templates/social. Type in the following content:
+Now, in your editor, create a new file called `index.html` in the directory `django101/social/templates/social`. Type in the following content:
 ```html
 <html>
   <head>
@@ -157,17 +164,17 @@ Now, in your editor, create a new file called index.html in the directory `socia
 </html>
 ```
 
-This is a typical HTML file, save for the stuff in the `{% %}` brackets. These brackets tell Django that whenever we're rendering this file, it should do something special here.
+This is a typical HTML file, save for the stuff in the `{% %}` brackets. These brackets tell Django that whenever it's rendering this file, it should do something special there.
 
 You can ignore the `{% csrf_token %}` bit for now, this is some magic from Django that prevents CSRF (Cross-Site Request Forgery) attacks. The `"{% url 'social:login' %}"` bit is interesting tough.
 
-If you didn't know, the HTML form action attribute describes what to do whenever a form is submitted. In regular HTML this attribute often contains the URL to which we want to send the filled in form. 
+If you didn't know, the HTML form `action` attribute describes what to do whenever a form is submitted. In regular HTML this attribute often contains the URL to which we want to send the filled in form. 
 In our case, this is no different. However, instead of directly writing the URL, we're using Django tags to fill it in. This is better, because if we ever want to change the URL to which we want to send login forms, we don't have to adapt the template, just the urls-file (which we'll get to now). 
 
 ### URLs
 As mentioned earlier, a view corresponds with a URL. Right now however, Django has no idea about any kinds of URLs, or how they are connected to views. Let's fix that.
 
-In the directory `django101/django101`, you'll find a urls.py file. Open it in your editor, and edit it to look like this:
+In the directory `django101/django101`, you'll find a `urls.py` file. Open it in your editor, and edit it to look like this:
 
 ```python
 from django.conf.urls import url, include
@@ -182,7 +189,7 @@ urlpatterns = [
 (You can leave the comments at the top or remove them, whatever you like).
 Note that we've added `include` to the first line. 
 
-This file is used by Django to link URLs to views. URLs are matched by [regular expressions] (https://en.wikipedia.org/wiki/Regular_expression). We've added the line `url(r'^',       include('social.urls', namespace='social'))`. The first argument here is a regular expression that matches everything. However, because of the regular expression above it (`r'^admin/`), URLs that end in /admin will be handled by the admin module (provided by Django).
+This file is used by Django to link URLs to views. URLs are matched by [regular expressions] (https://en.wikipedia.org/wiki/Regular_expression). We've added the line `url(r'^',       include('social.urls', namespace='social'))`. The first argument here is a regular expression that matches everything. The regular expression above it (`r'^admin/`) matches all URLs that end in `/admin`. It will send all these URLs to Django's admin module, because Django matches the URLs in this list from top to bottom.
 We've specified here that any request will be routed through to our social app. However, we currently don't have any urls in our social app, so let's add them.
 
 In the directory `django101/social` create a file `urls.py` and add the following content:
@@ -191,12 +198,12 @@ from django.conf.urls import include, url
 from social import views
 
 urlpatterns = [
-    url(r'$^',     views.index, name='index'),
     url(r'login/', views.social_login, name='login'),
-]   
+    url(r'$^',     views.index, name='index'),
+]
 ```
 
-This file is very similar to the one in `django101/django101`. However, instead of redirecting the regular expressions to other url-files, we link them to our views! What happens here is that any request without anything behind it will be processed by the index view (or method) in `social/views.py`. Any request that ends in `/login/` will be handled by a social_login view we have yet to write.
+This `urls.py` file is very similar to the one in `django101/django101`. However, instead of redirecting the regular expressions to other `urls.py` files, we link them to our views! What happens here is that any request without anything behind it will be processed by the `index` view in `social/views.py`. The `index` view  is just a Python function which will be called whenever someone visits your web app landing page. Any request to URLs that end in `/login/` will be handled by a `social_login` view we have yet to write.
 
 If you go back to our index.html template, we can see the `{% url social:login %}` tag. The part before the colon (:) specifies the namespace. We set the namespace in the `django101/django101/urls.py` file if you recall. The part after the colon specifies the name, which we just set in the `django101/social/urls.py` file. If we now wanted to change which view handles this login, all we'd have to do is change `views.login` to whatever new view we wrote. 
 
@@ -211,17 +218,23 @@ We'll implement this view in the next step.
 
 Now, to see if everything works, go to the top directory and type
 ```bash
-$ python3 manage.py runserver
-```
+(myvenv) $ python3 manage.py runserver
+Performing system checks...
 
+System check identified no issues (0 silenced).
+March 05, 2016 - 31:08:90
+Django version 1.9, using settings 'django101.settings'
+Starting development server at http://127.0.0.1:8000/
+Quit the server with CONTROL-C.
+```
 
 This starts the Django development server, so you can test your website! Open a browser and enter `localhost:8000` in the URL bar. You should be greated by our new site!
 
 # Step 3
 ## Logging In
 
-In the previous step, we created a shim login view. Let's flesh it out! 
-In the social_login view, we'd like to authenticate the user. In our index.html template, we created a form that, when submitted, sends its data as POST-parameters to our login view. This is where the request object comes in. To access POST-parameters, in your view type `request.POST[<parameter_name>]`. The names of the parameters correspond to the name attributes on the inputs in your HTML form, so in our case 'username' and 'password'.
+In the previous step, we created an empty login view. Let's flesh it out! 
+In the `social_login` view, we'd like to authenticate the user. In our `index.html` template, we created a form that, when submitted, sends its data as POST-parameters to our login view ([w3schools.com](http://www.w3schools.com/tags/ref_httpmethods.asp) has a nice introduction to HTTP requests and parameters). This is where the `request` object that Django passes on to views comes into play. To access POST-parameters, in your view type `request.POST[<parameter_name>]`. The names of the parameters correspond to the name attributes on the inputs in your HTML form, so in our case 'username' and 'password'.
 
 Open the `social/views.py` file and add the following:
 
@@ -239,11 +252,12 @@ At the top of your file, make sure we have the necessary imports:
 
 ```python
 from django.contrib.auth import authenticate, login
-from django.http import HttpResponseRedirect, HttpResponseBadRequest
+from django.http import HttpResponse, HttpResponseRedirect, HttpResponseBadRequest
 from django.core.urlresolvers import reverse
+from django.shortcuts import render
 ```
 
-This view gets the submitted username and password from the POST parameters as submitted by the form. It then uses the Django built-in method 'authenticate' to check whether this user exists. If so, the user is returned (and so is not None). By then calling the login function, we make sure that the user is registered as being logged in. This means a cookie is returned to the user which will be used from now on to authenticate the user. 
+This view gets the submitted username and password from the POST parameters as submitted by the form. It then uses the Django built-in method `authenticate` to check whether this password-user combination is correct. If so, the user is returned (and so is not None). By then calling the login function, we make sure that the user is registered as being logged in. This means a cookie is returned to the user which will be used from now on to authenticate the user. 
 We then return an `HttpResponseRedirect`, which redirects the user to the specified URL. `reverse` takes a url namespace and name (much like in our template), and converts it to an actual URL. This means that if a user succesfully logs in, (s)he will be redirected to the home page.
 
 If however, the user cannot be authenticated, we return an `HttpResponseBadRequest` with a message. This message is shown whenever someone tries to log in but makes a mistake or does not exist.
@@ -252,22 +266,22 @@ Now that we've referred to the home url (in `reverse('social:home')`) we have to
 
 ```python
 def home(request):
-    pass
+    return HttpResponse('This is not the home page you are looking for.')
 ```
 
 We'll also need to create a matching url. In `social/urls.py` add:
 ```python
-url(r'home/', views.home, name='home'),
+    url(r'home/', views.home, name='home'),
 ```
 to the `urlpatterns` list
 
-That's it! We're now able to login to our webapp! There's nothing really to show yet, but we'll get to that next. Remember to try if everything works by going to the top directory and typing `$ python3 manage.py runserver`, and then browsing to `localhost:8000`. You can try logging in with the username and password you created in step 1, and try logging in with a user that doesn't exist.
+That's it! We're now able to login to our webapp! There's nothing really to show yet, but we'll get to that next. Remember to try if everything works by going to the top `django101` directory and typing `(myvenv) $ python3 manage.py runserver`, and then browsing to `localhost:8000`. You can try logging in with the username and password you created in Step 1, and try logging in with a user that doesn't exist.
 
 # Step 4
 ## Add home view and template
 
 So, now that we've added a link to our home page, we should probably create a (real) view and a template for it too!
-The home page will consist of a textbox in which the user can add a status. Below that we'll show a list of statusses (remind you of another website?). 
+The home page will consist of a textbox in which the user can add a status. Below that we'll show a list of statuses (remind you of another website?). 
 
 To do this, we'll first create the home template. Create the file `social/templates/social/home.html` and add the following content:
 
@@ -298,7 +312,7 @@ To do this, we'll first create the home template. Create the file `social/templa
 ```
 
 The top part of this template is very similar to the login page, so we won't discuss it. The bottom part is where the interesting stuff happens.
-First the `{% for post in posts %}` tag. When our view is going to render this template later, the template will expect a `posts` parameter. In our template, we're going to loop over all elements in `posts`, and for each element, we'll create a `div`. Each `div` will contain two paragraphs, the first containing the post's text, and the second the date and time at which the post was made. 
+First the `{% for post in posts %}` tag. When our view is going to render this template later, the template will expect a `posts` parameter. In our template, we're going to loop over all elements in `posts`, and for each element, we'll create a `div`. Each `div` will contain two `<p>`paragraphs, the first containing the post's text, and the second the date and time at which the post was made. 
 The `{{ }}` notation tells Django we'd like to show a variable. 
 
 Now, we'll need to flesh out our home view. Open `social/views.py` and add the following:
@@ -320,12 +334,12 @@ This is the first time we're directly interacting with the database! Remember in
 
 Also, don't forget to add the URL in `social/urls.py`
 ```python
-url(r'post/add/', views.add_post, name="add_post")
+    url(r'post/add/', views.add_post, name="add_post"),
 ```
 to the `urlpatterns` list.
 
 ### The Django Admin
-Django comes with a very full-featured admin interface by default. This is useful for us now, so we can add posts before we've written a view that can do that for us. In order to make this possible, open the `admin.py` file in the `social` directory and add:
+Django comes with a very full-featured admin interface by default. This is useful for us now, so we can add posts before we've written a view that can do that for us. In order to make this possible, open the `admin.py` file in the `social` directory and add (note the import):
 
 ```python
 from social.models import *
@@ -375,7 +389,7 @@ Since most of these are not that relevant for this workshop, we'll proceed by de
 
 We'll start by introducing Git, which we'll use to share our code with the world (we're not that secretive about our code) and proceed by showing how to make your app itself accessible through PythonAnywhere.
 
-But before we can start any of this, we have to update our ``settings.py`` file to be production-ready. Add the following line:
+But before we can start any of this, we have to update our ``settings.py`` file in the `django101/django101/` directory to be production-ready. Add the following line (at the bottom):
 ```python
 STATIC_ROOT = os.path.join(BASE_DIR, 'static')
 ```
@@ -399,6 +413,7 @@ Since there will be some changes to the repository that are irrelevant, we proce
 ```
 *.pyc
 __pycache__
+media
 myvenv
 db.sqlite3
 /static
@@ -428,17 +443,17 @@ $ git commit -m "My awesome web-app, first commit" # this is the Git equivalent 
 A screen will appear which shows your repo's clone URL. Switch to "HTTPS" and copy it. Open a terminal in the topmost ``django101`` directory and type:
 ```bash
 # replace <your-github-username> with your actual username
-$ git remote add origin https://github.com/<your-github-username>/my-first-blog.git
+$ git remote add origin https://github.com/<your-github-username>/django101.git
 $ git push -u origin master
 ```
 
 Enter your GitHub username and password when prompted and check out what happens: your code is now published to GitHub for the world to see!
-You can check it out by browsing to [https://github.com/<your-github-username>/django101](https://github.com/<your-github-username>/django101).
+You can check it out by browsing to [https://github.com/your-github-username/django101](https://github.com/<your-github-username>/django101) (replace with your github username ofcourse).
 
 ## PythonAnywhere
 Now that we've shared our code with the world, it's time to make not only the *code*, but also the *actual app* available.
 
-Browse to [PythonAnywhere.com](https://www.pythonanywhere.com) and log in. Choose the option to start a "Bash console". It's a way to access a terminal similar to the one you've been using today, except for that's it not on your computer but on a PythonAnywhere server. You can baffle your friends by telling you're creating an app 'in the cloud' ;)
+Browse to [PythonAnywhere.com](https://www.pythonanywhere.com) and log in. Choose the option "Bash" under "Start a new console". It's a way to access a terminal similar to the one you've been using today, except for that's it not on your computer but on a PythonAnywhere server. You can baffle your friends by telling you're creating an app 'in the cloud' ;)
 
 ### Getting the code on PythonAnywhere
 To fetch the code from GitHub onto PythonAnywhere you can create a "clone" of the repo:
@@ -449,30 +464,31 @@ $ git clone https://github.com/<your-github-username>/django101.git
 Now it's time to set up a virtualenv. This ensures that everything you install for your app is installed in *isolation* and won't affect any further projects you deploy on PythonAnywhere:
 ```
 $ cd django101
-$ virtualenv --python=python3.4 myenv
-$ source myenv/bin/activate
-(myenv) $ pip install django==1.9 pillow # installs the packages on PythonAnywhere
-(myenv) $ python manage.py migrate # installs the database on PythonAnywhere
-(myenv) $ python manage.py createsuperuser # creates the user on PythonAnywhere
+$ virtualenv --python=python3.4 myvenv
+$ source myvenv/bin/activate
+(myvenv) $ pip install django==1.9 pillow # installs the packages on PythonAnywhere
+(myvenv) $ python manage.py migrate # installs the database on PythonAnywhere
+(myvenv) $ python manage.py createsuperuser # creates the user on PythonAnywhere
 ```
 
 The final step in setting up a deployment is a new one. It is one of those things that is necessary in production because of the different requirements from development that you usually have when you're deploying.
-It revolves around Django going through all apps with a vacuum cleaner in order to collect all static files and placing them in a single directory.
-This is convenient when you want to load the static files through some high-performance static file server instead of a humble Python-based one.
+It revolves around Django going through all apps with a vacuum cleaner in order to collect all static files and placing them in a single directory (the `STATIC_ROOT`).
+This is convenient when you want to load the static files (images, css-files, javascript-files, etc.) through some high-performance static file server instead of a humble Python-based one.
 In order to do this, type:
 ```bash
-(myenv) $ python manage.py collectstatic
+(myvenv) $ python manage.py collectstatic
 ```
-Type `yes` when prompted.
+Type `yes` when prompted. You'll see Django copying all kinds of static files (`.svg`, `.css`,
+`.js`) from Django's admin module.
 
 ### Going live!
-We've now got our code, dependencies and database on PythonAnywhere, so it's time to give live and conquer the world with our awesome social app!
+We've now got our code, dependencies and database on PythonAnywhere, so it's time to go live and conquer the world with our awesome social app!
 
 Go back to the PythonAnywhere dashboard by clicking on its logo and go to the *Web* tab. Hit *Add a new web app*.
 
 Confirm the domain name and select *manual configuration*. Make sure you don't select the "Django" option here!!! Next, choose Python3.4 and click Next to exit the wizard.
 
-You are now in a PythonAnywhere config screen for your webapp. Go to the "Virtualenv" section, click the red text that says "Enter the path to a virtualenv" and enter `/home/<your-pythonanywhere-username>/django101/myenv/`. Click the blue box with the check mark to save the path.
+You are now in a PythonAnywhere config screen for your webapp. Go to the "Virtualenv" section, click the red text that says "Enter the path to a virtualenv" and enter `/home/<your-pythonanywhere-username>/django101/myvenv/`. Click the blue box with the check mark to save the path.
 
 Now click the 'WSGI configuration file' link (in the "Code" section near the top of the page). Delete all contents and replace them with something like this (fill in your PythonAnywhere username):
 
@@ -499,13 +515,18 @@ Hit *Save* and then go back to the *Web* tab. Now hit the green reload button an
 Now that you've published *a* version of your app and feel like a minor god because of it, you probably want to do it any time you've added something cool to your web app.
 This you can do by repeating these steps that were described above:
 * On your computer:
-	* `$ git add --all` to notify git that you want to add your changes
+	* `$ git status` to see what happened since your last commit
+	* `$ git add --all` to notify git that you want to add all of your changes
 	* `$ git commit -m "Some meaningful message"` to save your changes
 	* `$ git push -u origin master` to publish your changes on GitHub
 * On PythonAnywhere:
 	* Log in and select 'Bash console 12345670' under *Your consoles*
-  * `(myenv) $ git pull` to fetch the changes from GitHub
-  * `(myevn) $ python manage.py collectstatic` to copy your static files to the right place. Enter `yes` when prompted.
+  * (Optional) `$ cd django101` to move to the `django101` directory (when necessary)
+  * (Optional) `$ source myvenv/bin/activate` activate your virtual environment (when necessary)
+  * `(myvenv) $ git pull` to fetch the changes from GitHub
+  * `(myvenv) $ python manage.py collectstatic` to copy your static files to the right place. Enter `yes` when prompted.
+  * Click the PythonAnywhere logo, go to the "Web" tab and click "Reload".
+
 
 # Step 5
 ## Add posts and comments
@@ -513,6 +534,7 @@ This you can do by repeating these steps that were described above:
 So now that we have the basics in place, lets implement the necessary functionality to post posts! We'll first write the view. Open `social/views.py` and add the following content:
 
 ```python
+@login_required
 def add_post(request)
     new_post = Post()
     new_post.text = request.POST['text']
@@ -522,11 +544,11 @@ def add_post(request)
 ```
 
 Alright, awesome! We can now save posts! However, this code isn't very safe: there's a few things that could go wrong here:
-* This view might be called using a request that is not a POST-request (GET, PUT, UPDATE or DELETE). That's not allowed!
+* This view might be called using a request that is not a POST-request (GET, PUT, UPDATE or DELETE). That's not allowed! For more info, check out [w3schools](http://www.w3schools.com/tags/ref_httpmethods.asp).
 * The view might be called with a POST request, but not contain the 'text' key, which crashes our view!
-* The 'text parameter might exists, but the string could be empty! We don't want people being able to post empty statusses.
+* The `'text'` key might exist, but could contain an empty string! We don't want people being able to post empty statuses.
 
-So, if any of these situations occurs, we'd like to return a `HttpResponseBadRequest`. However, all of the situations above could occur at any view that requires a post request and parameters. Therefore instead of writing some checks in every view, we've written a single function that checks everything:
+So, if any of these situations occurs, we'd like to return a `HttpResponseBadRequest`. However, all of the situations above could occur at any view that requires a post request and parameters. Therefore instead of writing some checks in every view, it's better to use a single function that checks everything:
 
 ```python
 def _check_post_request(request, keys):
@@ -544,10 +566,11 @@ def _check_post_request(request, keys):
     return (True, "Everything is alright!")
 ```
 
-This function takes a request object and a list of keys that are expected for this view. It then checks all the situations mentioned above. The function then returns a tuple with a boolean and a string. The boolean will be False if something is wrong, and True if everything checks out. The string describes what went wrong (or right). 
+This function takes a request object and a list of keys that are expected for this view. It then checks all the situations mentioned above. The function then returns a tuple with a boolean and a string. The boolean will be `False` if something is wrong, and `True` if everything checks out. The string describes what went wrong (or right). 
 
-Now we can add it to the add_posts method like this:
+Now we can add it to `add_posts`:
 ```python
+@login_required
 def add_post(request):
     check = _check_post_request(request, ['text'])
     if check[0]:
@@ -580,7 +603,7 @@ While our own front-end should never get any of these wrong, it's never bad to e
 
 Aside from Posts, we've also made room in our database for comments on these posts. We'll write the functionality for posting and displaying comments now too, as it's very similar to Posts.
 
-In home.html, add the following lines:
+In `home.html`, replace the part about posts with:
 
 ```html
 {% for post in posts %}
@@ -609,6 +632,7 @@ One thing that's new here is in the `{{comment.date_time | timesince}}` blob. Th
 As you might have guessed, we'll now need to add the `add_comment` view. Open `social/views.py` and add:
 
 ```python
+from social.models import Comment, Post # put this at the top with the other imports
 
 @login_required
 def add_comment(request):
@@ -631,15 +655,21 @@ def add_comment(request):
 This view looks very similar to the `add_post` view, but there is one important difference: a comment always needs to be linked to a Post object. We're sending the ID of the post to which we want to attach a comment through the form, so we can look up the right post in our view. This is done in the line `post = Post.objects.get(pk=request.POST['post_id'])`. The `get()` function takes as argument a field and a value of the model on which it is called. In our case, we use `pk` which stands for Primary Key. 
 The `get()` function will only succeed if there is only one model that corresponds to our arguments. We can be pretty sure there is only one Post with a certain ID, because this is enforced by the database. However, we could in theory try to save a comment on a post which does not exist. This is why the `get()` statement is wrapped in a `try` statement. If the operation fails, an `HttpResponseBadRequest` will be returned. 
 
-At this point we have a basic functioning social network! It looks kind of shabby though, so we'll add some formatting next.
+We've got a new view, so don't forget to link it to a URL in `urls.py`:
+```python
+  urls(r'comment/add/', views.add_comment, name='add_comment')
+```
+
+At this point we have a basic functioning social network! Try posting some posts and comments and see how everything works :) Oh and in case you want to make another user so that you can socialize with yourself: you can easily do this via the Django's admin panel.
+It looks kind of shabby though, so we'll add some formatting next.
 
 # Step 6
 ## Layout and Formatting
 
 We now have a working (albeit very basic) social network! However, it doesn't look like much yet, so we'll add some styling. If you are familiar with HTML and CSS, please feel free to use your own styling. 
-Seeing as we are developers and not graphic designers, we've chosen to use all the help we could get and use [Bootstrap] (http://getbootstrap.com/), a CSS framework developed by Twitter. This allows us to very quickly style a page that looks presentable.
+Seeing as we are developers and not graphic designers, we've chosen to use all the help we could get and use [Bootstrap] (http://getbootstrap.com/), a CSS framework developed by Twitter. This allows us to very quickly style a page that looks presentable. Alternatives to Bootstrap are [Foundation] (http://foundation.zurb.com/), [Skeleton] (http://getskeleton.com/) and [Materialize] (http://materializecss.com/), but there are tons of others too.
 
-To get started, in the social directory create a directory called `static`, which in turn contains a directory called `social`. In this directory, download the [latest version] (https://github.com/twbs/bootstrap/releases/download/v3.3.6/bootstrap-3.3.6-dist.zip) of Bootstrap and unzip it.
+To get started, in the`social` directory create a directory called `static`, which in turn contains a directory called `social`. In this directory, download the [latest version] (https://github.com/twbs/bootstrap/releases/download/v3.3.6/bootstrap-3.3.6-dist.zip) of Bootstrap and unzip it.
 
 To load the static files into our HTML pages, first open `index.html` and change the `<head>` portion to look like this:
 ```html
@@ -778,7 +808,7 @@ Open the `views.py` file, and change the line
 ```python
 posts = Post.objects.all()
 ```
-into
+in the ``home`` function into
 ```python
 posts = Post.objects.all().order_by('-date_time')
 ```
@@ -803,7 +833,7 @@ This makes sure that whenever you're requesting comments from the database, the 
 ## Uploading photos
 If you recall, when we created our models we added a `photo` field to the `Post` class. It's time we use it!
 
-To get uploading photos to work, we'll need to lay a little bit of a foundation. First, open `django101/settings.py` and add the following lines:
+To get uploading photos to work, we'll need to lay a little bit of a foundation. First, open `django101/django101/settings.py` and add the following lines:
 
 ```python
 
@@ -814,7 +844,7 @@ MEDIA_URL = '/media/'
 
 This tells Django where to store any uploaded images, and where to find them if they're to be displayed on a page.
 
-Then, open `django101/urls.py` and add the following imports:
+Then, open `django101/django101/urls.py` and add the following imports:
 ```python
 from django.conf import settings
 from django.conf.urls.static import static
@@ -865,6 +895,7 @@ Now, we don't just want to upload photos, we'd like to show them too! Add the fo
 <div class='col-xs-10 col-xs-offset-1'>
   <img class='img-responsive center-block img-rounded' src={{post.photo.url}}/>
 </div>
+{% endif %}
 ...
 ```
 
@@ -873,12 +904,13 @@ Bear in mind that if you chose to do your own styling in the previous step, you 
 Finally, we'll need to make sure that any photo that gets sent is stored! Open up `views.py` and add the following lines:
 ```python
 ...
+def add_post(request):
 new_post.poster = request.user
 if 'photo' in request.FILES and request.FILES['photo'] is not None:
     new_post.photo = request.FILES['photo']
 new_post.save()
 ...
-```python
+```
 
 That's it! You can now upload and view photos! 
 
@@ -934,14 +966,15 @@ Now, we'll need to adapt the home view so it can deal with any search parameters
 @login_required
 def home(request):
     if request.method == 'GET':
-        posts = Post.objects.all().order_by('-date_time')
-    if request.method == 'POST':
+        posts = Post.objects.all()
+    elif request.method == 'POST':
         check = _check_post_request(request, ['search_terms'])
         if check[0]:
             search_term = request.POST['search_terms']
-            posts = Post.objects.filter(text__icontains=search_term)
+            posts = Post.objects.filter(text__icontains=search_term).
         else:
             return HttpResponseBadRequest(check[1])
+    posts = posts.order_by('-date_time')
     return render(request, 'social/home.html', {'posts': posts})
 ```
 As you can see, the home view can now deal with two kinds of requests: regular GET requests and POST requests.
@@ -961,7 +994,7 @@ Now that you've been playing around with your app for a while, you'll probably n
 However, we have to make sure that we're the only ones that can remove our posts: it would be weird if you could delete everything your friends have written!
 
 To accomplish this, let's first create a delete button in the template.
-Open `home.html` and add the following lines:
+Open `home.html` and make it look like this (you have to replace the panel-header part):
 
 ```html
 <div class='panel-heading'>
