@@ -23,7 +23,7 @@ $ source myvenv/bin/activate
 (myvenv) $ pip install pillow
 ```
 
-Activating your virtual environment in Windows can be done by issueing the following command in the folder in which you created the virtualenv:
+Activating your virtual environment in Windows can be done by issuing the following command in the folder in which you created the virtualenv:
 ```bash
 C:\Users\Name\djangogirls> myvenv\Scripts\activate
 ```
