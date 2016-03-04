@@ -1,6 +1,8 @@
+[![Crunchr](https://raw.githubusercontent.com/florisdenhengst/django101/master/images/crunchr_logo.png)](https://crunchrapps.com)
 
 # Django 101: Build a web-app in a day
 [![Gitter](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/florisdenhengst/django101?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
+
 
 Welcome to the Django 101: Build a web-app in a day tutorial! This git repository contains all the code you will have written yourself at the end of the day. The final result will be a small social network in which you can post statusses, pictures and comments.
 
@@ -1059,18 +1061,22 @@ We'll be around to help if you'd like to create any of these features, or any th
 
 We hope you enjoyed this tutorial!
 
+# Further Reading
+Programming -- Python & Django
+* [Django tutorial] (https://docs.djangoproject.com/en/1.9/intro/tutorial01/)
+* [Learn Python the hard way (book)] (http://learnpythonthehardway.org/book/)
+* [Getting Started with Django (video)] (http://gettingstartedwithdjango.com/)
+* [Writing your first patch for Django] (https://docs.djangoproject.com/en/1.9/intro/contributing/)
+* [Django REST Framework] (http://www.django-rest-framework.org/)
 
+Visual -- HTML & CSS
+* [Pattern Library] (http://styleguides.io/examples.html)
+* [Adobe Color] (https://color.adobe.com/explore/newest/)
 
-
-
-
-
-
-
-
-
-
-
-
-
+Javascript
+* [Mozilla Developer Network's 'What is JavaScript, really?'] (https://developer.mozilla.org/en-US/Learn/Getting_started_with_the_web/JavaScript_basics)
+* [AngularJS] (https://docs.angularjs.org/guide/introduction)
+* [React] (https://facebook.github.io/react/)
+* [Backbone] (http://backbonejs.org/)
+* [Meteor] (https://www.meteor.com/)
 
