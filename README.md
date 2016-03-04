@@ -23,7 +23,12 @@ $ source myvenv/bin/activate
 (myvenv) $ pip install pillow
 ```
 
-This should create a new django101 directory, which contains the basic necessities of a Django project.
+Activating your virtual environment in Windows can be done by issueing the following command in the folder in which you created the virtualenv:
+```bash
+C:\Users\Name\djangogirls> myvenv\Scripts\activate
+```
+
+The startproject command will create a new django101 directory, which contains the basic necessities of a Django project.
 
 Enter the directory and create your app by typing
 ```bash
