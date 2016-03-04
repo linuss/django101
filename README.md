@@ -23,7 +23,12 @@ $ source myvenv/bin/activate
 (myvenv) $ pip install pillow
 ```
 
-This should create a new django101 directory, which contains the basic necessities of a Django project.
+Activating your virtual environment in Windows can be done by issuing the following command in the folder in which you created the virtualenv:
+```bash
+C:\Users\Name\djangogirls> myvenv\Scripts\activate
+```
+
+The startproject command will create a new django101 directory, which contains the basic necessities of a Django project.
 
 Enter the directory and create your app by typing
 ```bash
@@ -137,7 +142,7 @@ As mentioned earlier, a Django view will need to return something to display in 
 
 A Django template is in many ways very similar to a regular HTML file. The difference is that you can add special Django-specific tags and keywords to help you. This is often useful to embed data retrieved from the database on the page you're returning. 
 
-To create our first template issue the following command in the `django101/social` directory:
+To create our first template create the `templates/social` folder inside the social app directory. For linux-based systems issue the following command in the `django101/social` directory:
 ```bash
 $ mkdir -p templates/social
 ```
@@ -166,7 +171,7 @@ Now, in your editor, create a new file called `index.html` in the directory `dja
 </html>
 ```
 
-This is a typical HTML file, save for the stuff in the `{% %}` brackets. These brackets tell Django that whenever it's rendering this file, it should do something special there.
+This is a typical HTML file, except for the stuff in the `{% %}` brackets. These brackets tell Django that whenever it's rendering this file, it should do something special there.
 
 You can ignore the `{% csrf_token %}` bit for now, this is some magic from Django that prevents CSRF (Cross-Site Request Forgery) attacks. The `"{% url 'social:login' %}"` bit is interesting tough.
 
@@ -230,7 +235,7 @@ Starting development server at http://127.0.0.1:8000/
 Quit the server with CONTROL-C.
 ```
 
-This starts the Django development server, so you can test your website! Open a browser and enter `localhost:8000` in the URL bar. You should be greated by our new site!
+This starts the Django development server, so you can test your website! Open a browser and enter `localhost:8000` in the URL bar. You should be greeted by our new site!
 
 # Step 3
 ## Logging In
