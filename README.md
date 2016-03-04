@@ -1061,18 +1061,22 @@ We'll be around to help if you'd like to create any of these features, or any th
 
 We hope you enjoyed this tutorial!
 
+# Further Reading
+Programming -- Python & Django
+* [Django tutorial] (https://docs.djangoproject.com/en/1.9/intro/tutorial01/)
+* [Learn Python the hard way (book)] (http://learnpythonthehardway.org/book/)
+* [Getting Started with Django (video)] (http://gettingstartedwithdjango.com/)
+* [Writing your first patch for Django] (https://docs.djangoproject.com/en/1.9/intro/contributing/)
+* [Django REST Framework] (http://www.django-rest-framework.org/)
 
+Visual -- HTML & CSS
+* [Pattern Library] (http://styleguides.io/examples.html)
+* [Adobe Color] (https://color.adobe.com/explore/newest/)
 
-
-
-
-
-
-
-
-
-
-
-
-
+Javascript
+* [Mozilla Developer Network's 'What is JavaScript, really?'] (https://developer.mozilla.org/en-US/Learn/Getting_started_with_the_web/JavaScript_basics)
+* [AngularJS] (https://docs.angularjs.org/guide/introduction)
+* [React] (https://facebook.github.io/react/)
+* [Backbone] (http://backbonejs.org/)
+* [Meteor] (https://www.meteor.com/)
 
