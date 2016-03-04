@@ -142,7 +142,7 @@ As mentioned earlier, a Django view will need to return something to display in 
 
 A Django template is in many ways very similar to a regular HTML file. The difference is that you can add special Django-specific tags and keywords to help you. This is often useful to embed data retrieved from the database on the page you're returning. 
 
-To create our first template issue the following command in the `django101/social` directory:
+To create our first template create the `templates/social` folder inside the social app directory. For linux-based systems issue the following command in the `django101/social` directory:
 ```bash
 $ mkdir -p templates/social
 ```
