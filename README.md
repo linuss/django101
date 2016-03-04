@@ -171,7 +171,7 @@ Now, in your editor, create a new file called `index.html` in the directory `dja
 </html>
 ```
 
-This is a typical HTML file, save for the stuff in the `{% %}` brackets. These brackets tell Django that whenever it's rendering this file, it should do something special there.
+This is a typical HTML file, except for the stuff in the `{% %}` brackets. These brackets tell Django that whenever it's rendering this file, it should do something special there.
 
 You can ignore the `{% csrf_token %}` bit for now, this is some magic from Django that prevents CSRF (Cross-Site Request Forgery) attacks. The `"{% url 'social:login' %}"` bit is interesting tough.
 
