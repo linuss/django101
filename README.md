@@ -1,6 +1,8 @@
+[![Crunchr](https://raw.githubusercontent.com/florisdenhengst/django101/master/images/crunchr_logo.png)](https://crunchrapps.com)
 
 # Django 101: Build a web-app in a day
 [![Gitter](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/florisdenhengst/django101?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
+
 
 Welcome to the Django 101: Build a web-app in a day tutorial! This git repository contains all the code you will have written yourself at the end of the day. The final result will be a small social network in which you can post statusses, pictures and comments.
 
