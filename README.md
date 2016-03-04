@@ -230,7 +230,7 @@ Starting development server at http://127.0.0.1:8000/
 Quit the server with CONTROL-C.
 ```
 
-This starts the Django development server, so you can test your website! Open a browser and enter `localhost:8000` in the URL bar. You should be greated by our new site!
+This starts the Django development server, so you can test your website! Open a browser and enter `localhost:8000` in the URL bar. You should be greeted by our new site!
 
 # Step 3
 ## Logging In
